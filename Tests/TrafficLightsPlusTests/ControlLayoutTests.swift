@@ -5,15 +5,15 @@ import Testing
 @Test func preferredSizeIsClampedToSupportedRange() {
     #expect(ControlLayout.effectiveSize(preferred: 4) == 18)
     #expect(ControlLayout.effectiveSize(preferred: 32) == 32)
-    #expect(ControlLayout.effectiveSize(preferred: 100) == 48)
-    #expect(ControlLayout.effectiveSize(preferred: .nan) == 28)
-    #expect(ControlLayout.effectiveSize(preferred: .infinity) == 28)
+    #expect(ControlLayout.effectiveSize(preferred: 100) == 33)
+    #expect(ControlLayout.effectiveSize(preferred: .nan) == 18)
+    #expect(ControlLayout.effectiveSize(preferred: .infinity) == 18)
 }
 
 @Test func preferredSpacingRejectsNonFiniteValues() {
     #expect(ControlLayout.effectiveSpacingAdjustment(preferred: -20) == -8)
     #expect(ControlLayout.effectiveSpacingAdjustment(preferred: 12) == 12)
-    #expect(ControlLayout.effectiveSpacingAdjustment(preferred: 100) == 32)
+    #expect(ControlLayout.effectiveSpacingAdjustment(preferred: 100) == 15)
     #expect(ControlLayout.effectiveSpacingAdjustment(preferred: .nan) == 0)
     #expect(ControlLayout.effectiveSpacingAdjustment(preferred: -.infinity) == 0)
 }

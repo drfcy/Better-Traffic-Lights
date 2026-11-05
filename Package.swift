@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "TrafficLightsPlus",
     defaultLocalization: "zh-Hans",
-    platforms: [.macOS(.v13)],
+    platforms: [.macOS("26.0")],
     dependencies: [],
     targets: [
         .executableTarget(

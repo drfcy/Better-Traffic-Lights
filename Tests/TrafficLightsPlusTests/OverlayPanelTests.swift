@@ -4,15 +4,16 @@ import Testing
 @testable import TrafficLightsPlus
 
 @MainActor
-@Test func overlayContentFillsResizedPanel() {
-    let panel = OverlayPanel(action: .close)
+@Test func overlayPanelOwnsThreeControlsWithoutTrackingMouseMotion() {
+    let panel = OverlayPanel()
     panel.setFrame(NSRect(x: 100, y: 100, width: 40, height: 40), display: false)
     panel.contentView?.layoutSubtreeIfNeeded()
 
-    #expect(panel.overlayView.frame.origin == .zero)
-    #expect(panel.overlayView.frame.size == NSSize(width: 40, height: 40))
+    #expect(panel.overlayViews.count == WindowAction.allCases.count)
+    #expect(panel.contentView?.frame.size == NSSize(width: 40, height: 40))
     #expect(panel.level == .floating)
-    #expect(panel.acceptsMouseMovedEvents)
+    #expect(!panel.acceptsMouseMovedEvents)
+    #expect(panel.ignoresMouseEvents)
 }
 
 @MainActor
@@ -61,28 +62,30 @@ import Testing
 
 @MainActor
 @Test func overlayColorVisibilityFollowsActivationAndHover() {
-    let panel = OverlayPanel(action: .close)
+    let panel = OverlayPanel()
+    let button = panel.overlayViews[.close]!
 
-    #expect(!panel.overlayView.isColorVisible)
-    panel.overlayView.isGroupHovered = true
-    #expect(panel.overlayView.isColorVisible)
-    panel.overlayView.isGroupHovered = false
-    #expect(!panel.overlayView.isColorVisible)
+    #expect(!button.isColorVisible)
+    button.isGroupHovered = true
+    #expect(button.isColorVisible)
+    button.isGroupHovered = false
+    #expect(!button.isColorVisible)
 
-    panel.overlayView.isWindowActive = true
-    #expect(panel.overlayView.isColorVisible)
-    #expect(!panel.overlayView.isPointerHighlightVisible)
+    button.isWindowActive = true
+    #expect(button.isColorVisible)
+    #expect(!button.isPointerHighlightVisible)
 }
 
 @MainActor
-@Test func overlayTooltipUpdatesWhenLanguageChanges() {
-    let panel = OverlayPanel(action: .close)
-    panel.overlayView.behavior = .quitApplication
-    panel.overlayView.language = .simplifiedChinese
-    #expect(panel.overlayView.toolTip == "退出当前应用")
+@Test func overlayAccessibilityLabelUpdatesWhenLanguageChanges() {
+    let panel = OverlayPanel()
+    let button = panel.overlayViews[.close]!
+    button.behavior = .quitApplication
+    button.language = .simplifiedChinese
+    #expect(button.accessibilityLabel() == .some("退出当前应用"))
 
-    panel.overlayView.language = .english
-    #expect(panel.overlayView.toolTip == "Quit Current Application")
+    button.language = .english
+    #expect(button.accessibilityLabel() == .some("Quit Current Application"))
 }
 
 @Test func zoomMenuEligibilityRequiresZoomBehaviorAndActiveSupportedControl() {
@@ -303,9 +306,10 @@ import Testing
 
 @MainActor
 @Test func overlayPressHandlerRunsOnMouseDown() throws {
-    let panel = OverlayPanel(action: .zoom)
+    let panel = OverlayPanel()
+    let button = try #require(panel.overlayViews[.zoom])
     var pressedAction: WindowAction?
-    panel.overlayView.pressHandler = { pressedAction = $0 }
+    button.pressHandler = { pressedAction = $0 }
     let event = try #require(NSEvent.mouseEvent(
         with: .leftMouseDown,
         location: .zero,
@@ -318,7 +322,7 @@ import Testing
         pressure: 1
     ))
 
-    panel.overlayView.mouseDown(with: event)
+    button.mouseDown(with: event)
     #expect(pressedAction == .zoom)
 }
 
@@ -335,16 +339,19 @@ import Testing
 @MainActor
 @Test func maximumConfiguredSizeDrawsInsideNativeSizedAnimationFrame() throws {
     for action in WindowAction.allCases {
-        let panel = OverlayPanel(action: action)
-        panel.overlayView.controlSize = 48
-        panel.overlayView.behavior = ButtonBehavior.defaultBehavior(for: action)
+        let panel = OverlayPanel()
+        let button = try #require(panel.overlayViews[action])
+        button.controlSize = 48
+        button.behavior = ButtonBehavior.defaultBehavior(for: action)
         panel.setFrame(NSRect(x: 0, y: 0, width: 14, height: 14), display: false)
+        button.frame = NSRect(x: 0, y: 0, width: 14, height: 14)
+        button.setVisualRect(button.bounds)
         panel.contentView?.layoutSubtreeIfNeeded()
 
         let representation = try #require(
-            panel.overlayView.bitmapImageRepForCachingDisplay(in: panel.overlayView.bounds)
+            button.bitmapImageRepForCachingDisplay(in: button.bounds)
         )
-        panel.overlayView.cacheDisplay(in: panel.overlayView.bounds, to: representation)
+        button.cacheDisplay(in: button.bounds, to: representation)
     }
 }
 
@@ -396,8 +403,13 @@ import Testing
     #expect(!overlay.reconcileMinimizedState(false))
     #expect(overlay.isSuppressed)
     #expect(!overlay.minimizeWindow())
-    overlay.updatePresentation(availableActions: Set(WindowAction.allCases), mouseLocation: .zero,
-                               hiddenModeEnabled: false, revealMode: .nearest)
+    overlay.updatePresentation(
+        availableActions: Set(WindowAction.allCases),
+        mouseLocation: .zero,
+        hoverMagnificationEnabled: false,
+        permanentMagnifiedButtonsEnabled: false,
+        singleButtonMagnificationEnabled: false
+    )
     #expect(overlay.presentationState == .suppressed)
     overlay.restoreFromSuppression()
     #expect(overlay.reconcileMinimizedState(false))
@@ -405,10 +417,13 @@ import Testing
 
 @MainActor
 @Test func overlayRequiresOneMatchingPressPerAction() throws {
-    let panel = OverlayPanel(action: .minimize)
+    let panel = OverlayPanel()
+    let button = try #require(panel.overlayViews[.minimize])
     panel.setFrame(NSRect(x: 0, y: 0, width: 28, height: 28), display: false)
+    button.frame = NSRect(x: 0, y: 0, width: 28, height: 28)
+    button.setVisualRect(button.bounds)
     var actionCount = 0
-    panel.overlayView.actionHandler = { _ in actionCount += 1 }
+    button.actionHandler = { _ in actionCount += 1 }
     func event(_ type: NSEvent.EventType) throws -> NSEvent {
         try #require(NSEvent.mouseEvent(with: type, location: NSPoint(x: 14, y: 14),
                                        modifierFlags: [], timestamp: 0, windowNumber: panel.windowNumber,
@@ -416,14 +431,14 @@ import Testing
     }
     let down = try event(.leftMouseDown)
     let up = try event(.leftMouseUp)
-    panel.overlayView.mouseUp(with: up)
+    button.mouseUp(with: up)
     #expect(actionCount == 0)
-    panel.overlayView.mouseDown(with: down)
-    panel.overlayView.mouseUp(with: up)
-    panel.overlayView.mouseUp(with: up)
+    button.mouseDown(with: down)
+    button.mouseUp(with: up)
+    button.mouseUp(with: up)
     #expect(actionCount == 1)
-    panel.overlayView.mouseDown(with: down)
-    panel.overlayView.resetInteractionState()
-    panel.overlayView.mouseUp(with: up)
+    button.mouseDown(with: down)
+    button.resetInteractionState()
+    button.mouseUp(with: up)
     #expect(actionCount == 1)
 }

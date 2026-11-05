@@ -1,6 +1,6 @@
 # Better Traffic Lights
 
-[![macOS 13+](https://img.shields.io/badge/macOS-13%2B-black)](https://www.apple.com/macos/)
+[![macOS 26+](https://img.shields.io/badge/macOS-26%2B-black)](https://www.apple.com/macos/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **Make the red, yellow, and green controls easier to see and use.** Better Traffic Lights is a small macOS menu bar app focused on one job: magnifying a window’s traffic-light controls when you move the pointer over them.
@@ -8,6 +8,11 @@
 [简体中文](#简体中文) · [English](#english)
 
 ## 简体中文
+
+### 系统要求
+
+- macOS 26 Tahoe 或更高版本。
+- Apple Silicon 或 Intel Mac。
 
 ### 这个项目是怎么来的
 
@@ -77,6 +82,11 @@ macOS 没有公开 API 可直接调整其他应用的原生红绿灯尺寸。Bet
 本项目基于 [Liu223344/traffic-light-plus](https://github.com/Liu223344/traffic-light-plus) 修改，并依照 MIT License 发布。请参阅 [LICENSE](LICENSE)；再分发本项目或其重要部分时，应保留许可证中的版权和许可声明。Better Traffic Lights 与上游项目保持独立发布，功能和后续改动以本仓库为准。
 
 ## English
+
+### Requirements
+
+- macOS 26 Tahoe or later.
+- Apple Silicon or Intel Mac.
 
 ### How this project came about
 

@@ -391,37 +391,20 @@ private struct SettingsSlider: View {
         }
     }
 
-    @ViewBuilder
     private var sliderThumb: some View {
-        if #available(macOS 26.0, *) {
-            Capsule()
-                .fill(.white.opacity(0.12))
-                .frame(width: thumbWidth, height: thumbHeight)
-                .glassEffect(.regular.interactive(), in: Capsule())
-                .overlay {
-                    Capsule().strokeBorder(.white.opacity(0.62), lineWidth: 0.8)
-                }
-                .overlay(alignment: .top) {
-                    Capsule()
-                        .fill(.white.opacity(0.60))
-                        .frame(width: thumbWidth * 0.48, height: 1)
-                        .padding(.top, 2)
-                }
-                .shadow(color: .black.opacity(0.15), radius: 2, y: 1)
-        } else {
-            Capsule()
-                .fill(
-                    LinearGradient(
-                        colors: [Color.white.opacity(0.96), Color(nsColor: .controlBackgroundColor).opacity(0.82)],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .frame(width: thumbWidth, height: thumbHeight)
-                .overlay {
-                    Capsule().strokeBorder(Color.white.opacity(0.82), lineWidth: 0.8)
-                }
-                .shadow(color: .black.opacity(0.15), radius: 2, y: 1)
-        }
+        Capsule()
+            .fill(.white.opacity(0.12))
+            .frame(width: thumbWidth, height: thumbHeight)
+            .glassEffect(.regular.interactive(), in: Capsule())
+            .overlay {
+                Capsule().strokeBorder(.white.opacity(0.62), lineWidth: 0.8)
+            }
+            .overlay(alignment: .top) {
+                Capsule()
+                    .fill(.white.opacity(0.60))
+                    .frame(width: thumbWidth * 0.48, height: 1)
+                    .padding(.top, 2)
+            }
+            .shadow(color: .black.opacity(0.15), radius: 2, y: 1)
     }
 }
