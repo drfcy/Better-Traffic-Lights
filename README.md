@@ -5,7 +5,73 @@
 
 **Make the red, yellow, and green controls easier to see and use.** Better Traffic Lights is a small macOS menu bar app focused on one job: magnifying a window’s traffic-light controls when you move the pointer over them.
 
-[简体中文](#简体中文) · [English](#english)
+[English](#english) · [简体中文](#简体中文)
+
+## English
+
+### Requirements
+
+- macOS 26 Tahoe or later.
+- Apple Silicon or Intel Mac.
+
+### How this project came about
+
+Better Traffic Lights grew out of [Traffic Lights+](https://github.com/Liu223344/traffic-light-plus). The upstream project supplied the starting point for a Swift macOS app, including its approach to finding native window controls through Accessibility and drawing an overlay. Thanks to Liu223344 and the contributors to the original project.
+
+This edition narrows that starting point to the everyday task we wanted to keep: enlarging the three window controls and adjusting their spacing. We removed unrelated Dock and Stage Manager tools, made hover magnification work independently, and kept enlargement of the hovered button as an optional extra. The settings, app identity, control appearance, and Chinese/English copy were reshaped for this smaller scope. Window updates were also changed to respond to system and Accessibility events instead of repeatedly scanning every window, addressing the high CPU use observed during interaction.
+
+This is a modified derivative of an open-source project. It is an independent community project and is not affiliated with the upstream author or Apple. See **Origin and license** below.
+
+### What it does
+
+- Smoothly enlarges the three traffic-light controls when the pointer enters their area, then collapses them when it leaves.
+- Optionally enlarges only the button under the pointer one step further. This option requires hover magnification.
+- Lets you adjust button size and spacing; the default button size is 18 pt.
+- Preserves the native close, minimize, and zoom actions.
+- Works with foreground and background windows, including supported fullscreen windows and multiple displays.
+- Automatically follows the preferred language set in macOS: Simplified Chinese on a Chinese system, or English on an English system.
+- Stores preferences locally and includes no ads, accounts, analytics, or telemetry.
+
+### Preview
+
+The previews isolate the traffic-light controls; enlarged states are illustrative scale previews. The app follows the preferred language in macOS, showing Simplified Chinese when a Chinese language is preferred and English otherwise.
+
+<table>
+  <tr>
+    <td width="25%" align="center"><strong>Native controls</strong><br><img src="docs/images/traffic-lights-native.png" alt="Native macOS traffic lights" width="140"></td>
+    <td width="25%" align="center"><strong>Resident overlay</strong><br><img src="docs/images/traffic-lights-always-visible.png" alt="Traffic lights shown persistently" width="140"></td>
+    <td width="25%" align="center"><strong>Hover: group magnification</strong><br><img src="docs/images/traffic-lights-hover-group.png" alt="All three traffic lights enlarged on hover" width="140"></td>
+    <td width="25%" align="center"><strong>Hover: one button enlarged</strong><br><img src="docs/images/traffic-lights-hover-single.png" alt="One traffic light enlarged further on hover" width="140"></td>
+  </tr>
+</table>
+
+### Install and permissions
+
+Get a package from [Releases](https://github.com/drfcy/Better-Traffic-Lights/releases) and move `Better Traffic Lights.app` to Applications. On first use, allow Better Traffic Lights under **System Settings > Privacy & Security > Accessibility**. The permission is used to locate standard window controls and invoke their corresponding window actions.
+
+Public builds currently use ad-hoc signing and are not notarized by Apple. If macOS blocks the app on first launch, right-click it in Finder and choose **Open**.
+
+### Build from source
+
+Xcode Command Line Tools are required:
+
+```sh
+git clone https://github.com/drfcy/Better-Traffic-Lights.git
+cd Better-Traffic-Lights
+swift test
+./scripts/build-app.sh
+open "build/Better Traffic Lights.app"
+```
+
+The build script targets the current Mac by default. Set `TARGET_ARCH=arm64` or `TARGET_ARCH=x86_64` to choose an architecture. DMG and ZIP packaging scripts are in `scripts/`.
+
+### Implementation and limits
+
+macOS does not expose a public API for resizing another app’s native traffic-light controls. Better Traffic Lights uses Accessibility to find standard controls, draws enlarged versions in separate non-activating panels, and invokes the native actions. Apps with custom title bars or without standard Accessibility controls may not work. The overlay also cannot become part of the target app’s own window composition.
+
+### Origin and license
+
+This repository is modified from [Liu223344/traffic-light-plus](https://github.com/Liu223344/traffic-light-plus) and is distributed under the MIT License. See [LICENSE](LICENSE). When redistributing this project or substantial portions of it, retain the copyright and permission notices in that license. Better Traffic Lights is maintained independently; its current features and changes are described in this repository.
 
 ## 简体中文
 
@@ -34,22 +100,14 @@ Better Traffic Lights 是从 [Traffic Lights+](https://github.com/Liu223344/traf
 
 ### 预览
 
+预览图只展示红绿灯按钮区域；放大状态为比例示意。应用会跟随 macOS 的首选语言：中文首选语言显示简体中文，其他语言默认显示英文。
+
 <table>
   <tr>
-    <td width="50%" align="center">
-      <a href="docs/images/macos-settings-reference-zh.png">
-        <img src="docs/images/macos-settings-reference-zh.png" alt="macOS 系统设置界面参考图" width="360">
-      </a>
-    </td>
-    <td width="50%" align="center">
-      <a href="docs/images/better-traffic-lights-settings-zh.png">
-        <img src="docs/images/better-traffic-lights-settings-zh.png" alt="Better Traffic Lights 简体中文设置界面" width="360">
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <td align="center"><sub>macOS 系统设置</sub></td>
-    <td align="center"><sub>Better Traffic Lights 设置窗口</sub></td>
+    <td width="25%" align="center"><strong>原生按钮</strong><br><img src="docs/images/traffic-lights-native.png" alt="macOS 原生红绿灯" width="140"></td>
+    <td width="25%" align="center"><strong>常驻覆盖层</strong><br><img src="docs/images/traffic-lights-always-visible.png" alt="常驻显示的红绿灯" width="140"></td>
+    <td width="25%" align="center"><strong>悬停时整组放大</strong><br><img src="docs/images/traffic-lights-hover-group.png" alt="鼠标悬停时三个按钮一起放大" width="140"></td>
+    <td width="25%" align="center"><strong>悬停时单个按钮额外放大</strong><br><img src="docs/images/traffic-lights-hover-single.png" alt="鼠标悬停时单个按钮再放大一档" width="140"></td>
   </tr>
 </table>
 
@@ -80,79 +138,3 @@ macOS 没有公开 API 可直接调整其他应用的原生红绿灯尺寸。Bet
 ### 来源与许可证
 
 本项目基于 [Liu223344/traffic-light-plus](https://github.com/Liu223344/traffic-light-plus) 修改，并依照 MIT License 发布。请参阅 [LICENSE](LICENSE)；再分发本项目或其重要部分时，应保留许可证中的版权和许可声明。Better Traffic Lights 与上游项目保持独立发布，功能和后续改动以本仓库为准。
-
-## English
-
-### Requirements
-
-- macOS 26 Tahoe or later.
-- Apple Silicon or Intel Mac.
-
-### How this project came about
-
-Better Traffic Lights grew out of [Traffic Lights+](https://github.com/Liu223344/traffic-light-plus). The upstream project supplied the starting point for a Swift macOS app, including its approach to finding native window controls through Accessibility and drawing an overlay. Thanks to Liu223344 and the contributors to the original project.
-
-This edition narrows that starting point to the everyday task we wanted to keep: enlarging the three window controls and adjusting their spacing. We removed unrelated Dock and Stage Manager tools, made hover magnification work independently, and kept enlargement of the hovered button as an optional extra. The settings, app identity, control appearance, and Chinese/English copy were reshaped for this smaller scope. Window updates were also changed to respond to system and Accessibility events instead of repeatedly scanning every window, addressing the high CPU use observed during interaction.
-
-This is a modified derivative of an open-source project. It is an independent community project and is not affiliated with the upstream author or Apple. See **Origin and license** below.
-
-### What it does
-
-- Smoothly enlarges the three traffic-light controls when the pointer enters their area, then collapses them when it leaves.
-- Optionally enlarges only the button under the pointer one step further. This option requires hover magnification.
-- Lets you adjust button size and spacing; the default button size is 18 pt.
-- Preserves the native close, minimize, and zoom actions.
-- Works with foreground and background windows, including supported fullscreen windows and multiple displays.
-- Automatically follows the preferred language set in macOS: Simplified Chinese on a Chinese system, or English on an English system.
-- Stores preferences locally and includes no ads, accounts, analytics, or telemetry.
-
-### Preview
-
-<table>
-  <tr>
-    <td width="50%" align="center">
-      <a href="docs/images/macos-settings-reference-zh.png">
-        <img src="docs/images/macos-settings-reference-zh.png" alt="macOS System Settings reference screenshot (Simplified Chinese)" width="360">
-      </a>
-    </td>
-    <td width="50%" align="center">
-      <a href="docs/images/better-traffic-lights-settings-zh.png">
-        <img src="docs/images/better-traffic-lights-settings-zh.png" alt="Better Traffic Lights settings screenshot (Simplified Chinese)" width="360">
-      </a>
-    </td>
-  </tr>
-  <tr>
-    <td align="center"><sub>macOS System Settings</sub></td>
-    <td align="center"><sub>Better Traffic Lights Settings</sub></td>
-  </tr>
-</table>
-
-The screenshots above are in Simplified Chinese. The app automatically follows the preferred language set in macOS, switching between Simplified Chinese and English.
-
-### Install and permissions
-
-Get a package from [Releases](https://github.com/drfcy/Better-Traffic-Lights/releases) and move `Better Traffic Lights.app` to Applications. On first use, allow Better Traffic Lights under **System Settings > Privacy & Security > Accessibility**. The permission is used to locate standard window controls and invoke their corresponding window actions.
-
-Public builds currently use ad-hoc signing and are not notarized by Apple. If macOS blocks the app on first launch, right-click it in Finder and choose **Open**.
-
-### Build from source
-
-Xcode Command Line Tools are required:
-
-```sh
-git clone https://github.com/drfcy/Better-Traffic-Lights.git
-cd Better-Traffic-Lights
-swift test
-./scripts/build-app.sh
-open "build/Better Traffic Lights.app"
-```
-
-The build script targets the current Mac by default. Set `TARGET_ARCH=arm64` or `TARGET_ARCH=x86_64` to choose an architecture. DMG and ZIP packaging scripts are in `scripts/`.
-
-### Implementation and limits
-
-macOS does not expose a public API for resizing another app’s native traffic-light controls. Better Traffic Lights uses Accessibility to find standard controls, draws enlarged versions in separate non-activating panels, and invokes the native actions. Apps with custom title bars or without standard Accessibility controls may not work. The overlay also cannot become part of the target app’s own window composition.
-
-### Origin and license
-
-This repository is modified from [Liu223344/traffic-light-plus](https://github.com/Liu223344/traffic-light-plus) and is distributed under the MIT License. See [LICENSE](LICENSE). When redistributing this project or substantial portions of it, retain the copyright and permission notices in that license. Better Traffic Lights is maintained independently; its current features and changes are described in this repository.
