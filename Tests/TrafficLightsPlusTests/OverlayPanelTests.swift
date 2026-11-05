@@ -1,0 +1,429 @@
+import AppKit
+import ApplicationServices
+import Testing
+@testable import TrafficLightsPlus
+
+@MainActor
+@Test func overlayContentFillsResizedPanel() {
+    let panel = OverlayPanel(action: .close)
+    panel.setFrame(NSRect(x: 100, y: 100, width: 40, height: 40), display: false)
+    panel.contentView?.layoutSubtreeIfNeeded()
+
+    #expect(panel.overlayView.frame.origin == .zero)
+    #expect(panel.overlayView.frame.size == NSSize(width: 40, height: 40))
+    #expect(panel.level == .floating)
+    #expect(panel.acceptsMouseMovedEvents)
+}
+
+@MainActor
+@Test func minimizedOverlayStaysSuppressedUntilRestored() {
+    let pid = ProcessInfo.processInfo.processIdentifier
+    let key = AXWindowKey(pid: pid, element: AXUIElementCreateApplication(pid))
+    let overlay = WindowOverlay(key: key)
+
+    overlay.suppressUntilRestored()
+    #expect(overlay.isSuppressed)
+    #expect(overlay.presentationState == .suppressed)
+
+    overlay.restoreFromSuppression()
+    #expect(!overlay.isSuppressed)
+    #expect(overlay.presentationState == .hidden)
+}
+
+@MainActor
+@Test func hidingAnAlreadyHiddenOverlayDoesNotTouchItsPanelsAgain() {
+    let pid = ProcessInfo.processInfo.processIdentifier
+    let key = AXWindowKey(pid: pid, element: AXUIElementCreateApplication(pid))
+    let overlay = WindowOverlay(key: key)
+
+    #expect(!overlay.hide())
+    overlay.suppressUntilRestored()
+    #expect(!overlay.hide())
+    overlay.restoreFromSuppression()
+    #expect(!overlay.hide())
+}
+
+@MainActor
+@Test func periodicWindowStateRecoversFromMissedDeminiaturizeNotification() {
+    let pid = ProcessInfo.processInfo.processIdentifier
+    let key = AXWindowKey(pid: pid, element: AXUIElementCreateApplication(pid))
+    let overlay = WindowOverlay(key: key)
+
+    #expect(!overlay.reconcileMinimizedState(true))
+    #expect(overlay.isSuppressed)
+
+    // Stage Manager does not consistently deliver AXWindowDeminiaturized.
+    // The next periodic AX state refresh must still restore the overlay.
+    #expect(overlay.reconcileMinimizedState(false))
+    #expect(!overlay.isSuppressed)
+    #expect(overlay.presentationState == .hidden)
+}
+
+@MainActor
+@Test func overlayColorVisibilityFollowsActivationAndHover() {
+    let panel = OverlayPanel(action: .close)
+
+    #expect(!panel.overlayView.isColorVisible)
+    panel.overlayView.isGroupHovered = true
+    #expect(panel.overlayView.isColorVisible)
+    panel.overlayView.isGroupHovered = false
+    #expect(!panel.overlayView.isColorVisible)
+
+    panel.overlayView.isWindowActive = true
+    #expect(panel.overlayView.isColorVisible)
+    #expect(!panel.overlayView.isPointerHighlightVisible)
+}
+
+@MainActor
+@Test func overlayTooltipUpdatesWhenLanguageChanges() {
+    let panel = OverlayPanel(action: .close)
+    panel.overlayView.behavior = .quitApplication
+    panel.overlayView.language = .simplifiedChinese
+    #expect(panel.overlayView.toolTip == "退出当前应用")
+
+    panel.overlayView.language = .english
+    #expect(panel.overlayView.toolTip == "Quit Current Application")
+}
+
+@Test func zoomMenuEligibilityRequiresZoomBehaviorAndActiveSupportedControl() {
+    #expect(WindowOverlay.zoomMenuHoverDelay == 0.5)
+    #expect(WindowOverlay.shouldOfferZoomMenu(
+        behavior: .zoomWindow,
+        isActiveWindow: true,
+        isControlEnabled: true,
+        supportsShowMenu: true
+    ))
+    #expect(!WindowOverlay.shouldOfferZoomMenu(
+        behavior: .closeWindow,
+        isActiveWindow: true,
+        isControlEnabled: true,
+        supportsShowMenu: true
+    ))
+    #expect(!WindowOverlay.shouldOfferZoomMenu(
+        behavior: .zoomWindow,
+        isActiveWindow: false,
+        isControlEnabled: true,
+        supportsShowMenu: true
+    ))
+    #expect(!WindowOverlay.shouldOfferZoomMenu(
+        behavior: .zoomWindow,
+        isActiveWindow: true,
+        isControlEnabled: false,
+        supportsShowMenu: true
+    ))
+    #expect(!WindowOverlay.shouldOfferZoomMenu(
+        behavior: .zoomWindow,
+        isActiveWindow: true,
+        isControlEnabled: true,
+        supportsShowMenu: false
+    ))
+}
+
+@Test func zoomClickWaitsOnlyForARecentlyTriggeredHoverMenu() {
+    #expect(WindowOverlay.zoomActionDelay(menuTriggeredAt: nil, now: 10) == 0)
+    #expect(WindowOverlay.zoomActionDelay(menuTriggeredAt: 10, now: 10.5) == 0.12)
+    #expect(WindowOverlay.zoomActionDelay(menuTriggeredAt: 10, now: 11.01) == 0)
+    #expect(WindowOverlay.zoomActionDelay(menuTriggeredAt: 11, now: 10) == 0)
+}
+
+@Test func nativeZoomClickRequiresAPriorMenuAndNoInFlightClick() {
+    #expect(!WindowOverlay.shouldUseNativeZoomClick(
+        menuWasRequested: false,
+        isClickInFlight: false
+    ))
+    #expect(WindowOverlay.shouldUseNativeZoomClick(
+        menuWasRequested: true,
+        isClickInFlight: false
+    ))
+    #expect(!WindowOverlay.shouldUseNativeZoomClick(
+        menuWasRequested: true,
+        isClickInFlight: true
+    ))
+}
+
+@Test func nativeZoomClickPointRequiresFiniteNonEmptyGeometry() {
+    let targetWindow = CGRect(x: 80, y: 20, width: 800, height: 600)
+    let displays = [CGRect(x: 0, y: 0, width: 1920, height: 1080)]
+    #expect(WindowOverlay.nativeZoomClickPoint(
+        in: CGRect(x: 100, y: 40, width: 14, height: 14),
+        targetWindowFrame: targetWindow,
+        displayFrames: displays
+    ) == CGPoint(x: 107, y: 47))
+    #expect(WindowOverlay.nativeZoomClickPoint(
+        in: .zero,
+        targetWindowFrame: targetWindow,
+        displayFrames: displays
+    ) == nil)
+    #expect(WindowOverlay.nativeZoomClickPoint(
+        in: CGRect(x: CGFloat.infinity, y: 40, width: 14, height: 14),
+        targetWindowFrame: targetWindow,
+        displayFrames: displays
+    ) == nil)
+    #expect(WindowOverlay.nativeZoomClickPoint(
+        in: CGRect(x: 100, y: CGFloat.nan, width: 14, height: 14),
+        targetWindowFrame: targetWindow,
+        displayFrames: displays
+    ) == nil)
+    #expect(WindowOverlay.nativeZoomClickPoint(
+        in: CGRect(
+            x: CGFloat.greatestFiniteMagnitude,
+            y: 40,
+            width: CGFloat.greatestFiniteMagnitude,
+            height: 14
+        ),
+        targetWindowFrame: CGRect(
+            x: 0,
+            y: 0,
+            width: CGFloat.greatestFiniteMagnitude,
+            height: 600
+        ),
+        displayFrames: displays
+    ) == nil)
+}
+
+@Test func nativeZoomClickPointMustStayInsideTheTargetWindowAndAnActiveDisplay() {
+    let button = CGRect(x: 100, y: 40, width: 14, height: 14)
+    let display = CGRect(x: 0, y: 0, width: 1920, height: 1080)
+    #expect(WindowOverlay.nativeZoomClickPoint(
+        in: button,
+        targetWindowFrame: CGRect(x: 200, y: 20, width: 800, height: 600),
+        displayFrames: [display]
+    ) == nil)
+    #expect(WindowOverlay.nativeZoomClickPoint(
+        in: button,
+        targetWindowFrame: CGRect(x: 80, y: 20, width: 800, height: 600),
+        displayFrames: [CGRect(x: 2000, y: 0, width: 1920, height: 1080)]
+    ) == nil)
+}
+
+@Test func nativeZoomClickEventsPressReleaseAndRestoreThePointer() throws {
+    let clickPoint = CGPoint(x: 107, y: 47)
+    let pointerPoint = CGPoint(x: 320, y: 240)
+    let events = try #require(WindowOverlay.nativeZoomClickEvents(
+        at: clickPoint,
+        restoringPointerTo: pointerPoint
+    ))
+
+    #expect(events.count == 3)
+    #expect(events.map(\.type) == [.leftMouseDown, .leftMouseUp, .mouseMoved])
+    #expect(events.map(\.location) == [clickPoint, clickPoint, pointerPoint])
+    #expect(events[0].getIntegerValueField(.mouseEventClickState) == 1)
+    #expect(events[1].getIntegerValueField(.mouseEventClickState) == 1)
+}
+
+@Test func closingBehaviorsDismissTheOverlayBeforePerformingTheirAction() {
+    #expect(WindowOverlay.closeDismissalDuration == 1.0)
+    #expect(WindowOverlay.shouldDismissImmediately(behavior: .closeWindow))
+    #expect(WindowOverlay.shouldDismissImmediately(behavior: .quitApplication))
+    #expect(!WindowOverlay.shouldDismissImmediately(behavior: .minimizeWindow))
+    #expect(!WindowOverlay.shouldDismissImmediately(behavior: .zoomWindow))
+    #expect(!WindowOverlay.shouldDismissImmediately(behavior: .hideApplication))
+    #expect(!WindowOverlay.shouldDismissImmediately(behavior: .doNothing))
+}
+
+@Test func adjacentToolbarControlCannotTriggerAnEnlargedTrafficLight() {
+    let nativeFrames: [WindowAction: CGRect] = [
+        .close: CGRect(x: 20, y: 20, width: 14, height: 14),
+        .minimize: CGRect(x: 40, y: 20, width: 14, height: 14),
+        .zoom: CGRect(x: 60, y: 20, width: 14, height: 14)
+    ]
+    let expandedFrames: [WindowAction: CGRect] = [
+        .close: CGRect(x: 3, y: 3, width: 48, height: 48),
+        .minimize: CGRect(x: 55, y: 3, width: 48, height: 48),
+        .zoom: CGRect(x: 107, y: 3, width: 48, height: 48)
+    ]
+    var isEngaged = false
+    var selectedAction: WindowAction?
+
+    let actions = WindowOverlay.desiredRevealActions(
+        pointer: CGPoint(x: 130, y: 27),
+        mode: .nearest,
+        nativeFrames: nativeFrames,
+        expandedFrames: expandedFrames,
+        actions: Set(WindowAction.allCases),
+        isEngaged: &isEngaged,
+        selectedAction: &selectedAction
+    )
+
+    #expect(actions.isEmpty)
+    #expect(!isEngaged)
+    #expect(selectedAction == nil)
+}
+
+@Test func legitimatelyTriggeredTrafficLightStaysInteractiveWhilePointerFollowsExpansion() {
+    let nativeFrames: [WindowAction: CGRect] = [
+        .close: CGRect(x: 20, y: 20, width: 14, height: 14),
+        .minimize: CGRect(x: 40, y: 20, width: 14, height: 14),
+        .zoom: CGRect(x: 60, y: 20, width: 14, height: 14)
+    ]
+    let expandedFrames: [WindowAction: CGRect] = [
+        .close: CGRect(x: 3, y: 3, width: 48, height: 48),
+        .minimize: CGRect(x: 55, y: 3, width: 48, height: 48),
+        .zoom: CGRect(x: 107, y: 3, width: 48, height: 48)
+    ]
+    var isEngaged = false
+    var selectedAction: WindowAction?
+
+    let triggered = WindowOverlay.desiredRevealActions(
+        pointer: CGPoint(x: 67, y: 27),
+        mode: .nearest,
+        nativeFrames: nativeFrames,
+        expandedFrames: expandedFrames,
+        actions: Set(WindowAction.allCases),
+        isEngaged: &isEngaged,
+        selectedAction: &selectedAction
+    )
+    #expect(triggered == [.zoom])
+    #expect(isEngaged)
+
+    let followed = WindowOverlay.desiredRevealActions(
+        pointer: CGPoint(x: 130, y: 27),
+        mode: .nearest,
+        nativeFrames: nativeFrames,
+        expandedFrames: expandedFrames,
+        actions: Set(WindowAction.allCases),
+        isEngaged: &isEngaged,
+        selectedAction: &selectedAction
+    )
+    #expect(followed == [.zoom])
+    #expect(isEngaged)
+
+    let left = WindowOverlay.desiredRevealActions(
+        pointer: CGPoint(x: 180, y: 27),
+        mode: .nearest,
+        nativeFrames: nativeFrames,
+        expandedFrames: expandedFrames,
+        actions: Set(WindowAction.allCases),
+        isEngaged: &isEngaged,
+        selectedAction: &selectedAction
+    )
+    #expect(left.isEmpty)
+    #expect(!isEngaged)
+}
+
+@MainActor
+@Test func overlayPressHandlerRunsOnMouseDown() throws {
+    let panel = OverlayPanel(action: .zoom)
+    var pressedAction: WindowAction?
+    panel.overlayView.pressHandler = { pressedAction = $0 }
+    let event = try #require(NSEvent.mouseEvent(
+        with: .leftMouseDown,
+        location: .zero,
+        modifierFlags: [],
+        timestamp: 0,
+        windowNumber: 0,
+        context: nil,
+        eventNumber: 0,
+        clickCount: 1,
+        pressure: 1
+    ))
+
+    panel.overlayView.mouseDown(with: event)
+    #expect(pressedAction == .zoom)
+}
+
+@Test func symbolRectUsesAnimatedBoundsInsteadOfConfiguredControlSize() throws {
+    let compactBounds = NSRect(x: 0, y: 0, width: 14, height: 14)
+    let symbolRect = try #require(OverlayButtonView.symbolRect(in: compactBounds, style: .macOS))
+
+    #expect(symbolRect.minX.isFinite)
+    #expect(symbolRect.minY.isFinite)
+    #expect(symbolRect.width > 0)
+    #expect(symbolRect.height > 0)
+}
+
+@MainActor
+@Test func maximumConfiguredSizeDrawsInsideNativeSizedAnimationFrame() throws {
+    for action in WindowAction.allCases {
+        let panel = OverlayPanel(action: action)
+        panel.overlayView.controlSize = 48
+        panel.overlayView.behavior = ButtonBehavior.defaultBehavior(for: action)
+        panel.setFrame(NSRect(x: 0, y: 0, width: 14, height: 14), display: false)
+        panel.contentView?.layoutSubtreeIfNeeded()
+
+        let representation = try #require(
+            panel.overlayView.bitmapImageRepForCachingDisplay(in: panel.overlayView.bounds)
+        )
+        panel.overlayView.cacheDisplay(in: panel.overlayView.bounds, to: representation)
+    }
+}
+
+@Test func revealAnimationRunsOnlyUntilRequestedControlsReachTheirTargets() {
+    // A reveal needs its first frame even though all controls are still hidden.
+    #expect(WindowOverlay.needsPresentationAnimation(
+        progress: [.close: 0], availableActions: [.close], desiredActions: [.close]
+    ))
+    #expect(!WindowOverlay.needsPresentationAnimation(
+        progress: [.close: 1], availableActions: [.close], desiredActions: [.close]
+    ))
+    // Leaving midway through expansion must keep the collapse animation running.
+    #expect(WindowOverlay.needsPresentationAnimation(
+        progress: [.close: 0.5], availableActions: [.close], desiredActions: []
+    ))
+    #expect(!WindowOverlay.needsPresentationAnimation(
+        progress: [.close: 0], availableActions: [.close], desiredActions: []
+    ))
+    // An occluded control must not keep an animation timer alive.
+    #expect(!WindowOverlay.needsPresentationAnimation(
+        progress: [.close: 0.5], availableActions: [], desiredActions: [.close]
+    ))
+}
+
+@Test func nativeZoomRequestsRejectDuplicateAndExpiredMenuCompletions() throws {
+    var request = NativeZoomClickRequest()
+    let firstTicket = request.begin()
+    let first = try #require(firstTicket)
+    let duplicate = request.begin()
+    #expect(duplicate == nil)
+    #expect(request.isCurrent(first))
+    request.cancel() // timeout or the window was hidden/destroyed
+    #expect(!request.isCurrent(first))
+    let secondTicket = request.begin()
+    let second = try #require(secondTicket)
+    #expect(!request.isCurrent(first))
+    #expect(request.isCurrent(second))
+    request.cancel()
+    #expect(!request.isInFlight)
+}
+
+@MainActor
+@Test func minimizingHidesPanelsAndIgnoresStaleUnminimizedState() {
+    let pid = ProcessInfo.processInfo.processIdentifier
+    let overlay = WindowOverlay(key: AXWindowKey(pid: pid, element: AXUIElementCreateApplication(pid)))
+    overlay.beginMinimizeDismissal()
+    #expect(overlay.isSuppressed)
+    #expect(overlay.presentationState == .suppressed)
+    #expect(!overlay.reconcileMinimizedState(false))
+    #expect(overlay.isSuppressed)
+    #expect(!overlay.minimizeWindow())
+    overlay.updatePresentation(availableActions: Set(WindowAction.allCases), mouseLocation: .zero,
+                               hiddenModeEnabled: false, revealMode: .nearest)
+    #expect(overlay.presentationState == .suppressed)
+    overlay.restoreFromSuppression()
+    #expect(overlay.reconcileMinimizedState(false))
+}
+
+@MainActor
+@Test func overlayRequiresOneMatchingPressPerAction() throws {
+    let panel = OverlayPanel(action: .minimize)
+    panel.setFrame(NSRect(x: 0, y: 0, width: 28, height: 28), display: false)
+    var actionCount = 0
+    panel.overlayView.actionHandler = { _ in actionCount += 1 }
+    func event(_ type: NSEvent.EventType) throws -> NSEvent {
+        try #require(NSEvent.mouseEvent(with: type, location: NSPoint(x: 14, y: 14),
+                                       modifierFlags: [], timestamp: 0, windowNumber: panel.windowNumber,
+                                       context: nil, eventNumber: 0, clickCount: 1, pressure: 1))
+    }
+    let down = try event(.leftMouseDown)
+    let up = try event(.leftMouseUp)
+    panel.overlayView.mouseUp(with: up)
+    #expect(actionCount == 0)
+    panel.overlayView.mouseDown(with: down)
+    panel.overlayView.mouseUp(with: up)
+    panel.overlayView.mouseUp(with: up)
+    #expect(actionCount == 1)
+    panel.overlayView.mouseDown(with: down)
+    panel.overlayView.resetInteractionState()
+    panel.overlayView.mouseUp(with: up)
+    #expect(actionCount == 1)
+}
