@@ -35,7 +35,7 @@ jobs:
       fail-fast: false
       matrix:
         sanitizer: [address, thread]
-    runs-on: macos-26
+    runs-on: macos-26-intel
     steps:
       - uses: actions/checkout@v6
       - name: Test
