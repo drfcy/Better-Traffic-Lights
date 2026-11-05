@@ -24,18 +24,29 @@ Better Traffic Lights 是从 [Traffic Lights+](https://github.com/Liu223344/traf
 - 可调整按钮大小与按钮间距，默认按钮大小为 18 pt。
 - 红、黄、绿按钮仍执行 macOS 原有的关闭、最小化和缩放操作。
 - 前台和后台窗口都可触发；支持标准辅助功能按钮的全屏窗口及多显示器场景。
-- 设置界面按 macOS 首选语言显示简体中文或英文。
+- 设置界面自动跟随 macOS 系统语言：系统首选语言为中文时显示简体中文，为英文时显示英文。
 - 设置保存在本机。应用不包含广告、账号、分析统计或遥测。
 
 ### 预览
 
-<p align="center">
-  <img src="docs/images/enlarged-traffic-lights.jpg" alt="放大后的 macOS 红绿灯按钮" width="900">
-</p>
-
-<p align="center">
-  <img src="docs/images/settings-zh-hans-top.png" alt="Better Traffic Lights 设置界面" width="420">
-</p>
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <a href="docs/images/macos-settings-reference-zh.png">
+        <img src="docs/images/macos-settings-reference-zh.png" alt="macOS 系统设置界面参考图" width="100%">
+      </a>
+    </td>
+    <td width="50%" align="center">
+      <a href="docs/images/better-traffic-lights-settings-zh.png">
+        <img src="docs/images/better-traffic-lights-settings-zh.png" alt="Better Traffic Lights 简体中文设置界面" width="100%">
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>macOS 系统设置</sub></td>
+    <td align="center"><sub>Better Traffic Lights 设置窗口</sub></td>
+  </tr>
+</table>
 
 ### 安装与权限
 
@@ -82,18 +93,31 @@ This is a modified derivative of an open-source project. It is an independent co
 - Lets you adjust button size and spacing; the default button size is 18 pt.
 - Preserves the native close, minimize, and zoom actions.
 - Works with foreground and background windows, including supported fullscreen windows and multiple displays.
-- Follows the preferred language configured in macOS: Simplified Chinese or English.
+- Automatically follows the preferred language set in macOS: Simplified Chinese on a Chinese system, or English on an English system.
 - Stores preferences locally and includes no ads, accounts, analytics, or telemetry.
 
 ### Preview
 
-<p align="center">
-  <img src="docs/images/enlarged-traffic-lights.jpg" alt="Enlarged macOS traffic-light controls" width="900">
-</p>
+<table>
+  <tr>
+    <td width="50%" align="center">
+      <a href="docs/images/macos-settings-reference-zh.png">
+        <img src="docs/images/macos-settings-reference-zh.png" alt="macOS System Settings reference screenshot (Simplified Chinese)" width="100%">
+      </a>
+    </td>
+    <td width="50%" align="center">
+      <a href="docs/images/better-traffic-lights-settings-zh.png">
+        <img src="docs/images/better-traffic-lights-settings-zh.png" alt="Better Traffic Lights settings screenshot (Simplified Chinese)" width="100%">
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center"><sub>macOS System Settings</sub></td>
+    <td align="center"><sub>Better Traffic Lights Settings</sub></td>
+  </tr>
+</table>
 
-<p align="center">
-  <img src="docs/images/settings-en-top.png" alt="Better Traffic Lights settings" width="420">
-</p>
+The screenshots above are in Simplified Chinese. The app automatically follows the preferred language set in macOS, switching between Simplified Chinese and English.
 
 ### Install and permissions
 
