@@ -14,6 +14,12 @@
 - macOS 26 Tahoe or later.
 - Apple Silicon or Intel Mac.
 
+### Why we built this
+
+macOS traffic lights are beautifully integrated into the title bar, but their small targets can be harder to hit with a mouse than the window controls many users are used to on Windows. As a result, many Mac users turn to keyboard shortcuts, even though pointing to a visible control is often the most intuitive way to act on a window.
+
+We were inspired by [Apple’s new touch-enabled MacBook Pro](https://www.apple.com/newsroom/2026/10/apple-unveils-groundbreaking-macbook-pro-with-proled-xdr-display/), where [the traffic-light controls grow when touched](https://www.macrumors.com/2026/10/30/macbook-pro-proled-xdr-details/) to make them easier to choose. We wondered whether a similar, temporary enlargement could help mouse users on ordinary MacBooks and other Macs too. Better Traffic Lights is our attempt to bring that interaction to them.
+
 ### How this project came about
 
 Better Traffic Lights grew out of [Traffic Lights+](https://github.com/Liu223344/traffic-light-plus). The upstream project supplied the starting point for a Swift macOS app, including its approach to finding native window controls through Accessibility and drawing an overlay. Thanks to Liu223344 and the contributors to the original project.
@@ -79,6 +85,12 @@ This repository is modified from [Liu223344/traffic-light-plus](https://github.c
 
 - macOS 26 Tahoe 或更高版本。
 - Apple Silicon 或 Intel Mac。
+
+### 为什么做这个软件
+
+macOS 原生红绿灯外观精致，也与标题栏融为一体，但按钮比许多用户熟悉的 Windows 窗口控制按钮小，鼠标不容易准确点中。因此，不少 Mac 用户逐渐习惯使用快捷键；但对着看得见的窗口按钮直接点击，往往更符合直觉。
+
+我们的灵感来自[苹果新推出的支持触控的 MacBook Pro](https://www.apple.com/newsroom/2026/10/apple-unveils-groundbreaking-macbook-pro-with-proled-xdr-display/)：触控时，[窗口红绿灯会放大一圈](https://www.macrumors.com/2026/10/30/macbook-pro-proled-xdr-details/)，方便用户选择。我们由此想到，能否把这种即时放大的反馈也带到普通 MacBook 和其他 Mac 上，让鼠标用户同样更容易点中窗口按钮？Better Traffic Lights 就是对这个问题的一次尝试。
 
 ### 这个项目是怎么来的
 
