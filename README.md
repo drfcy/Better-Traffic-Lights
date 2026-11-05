@@ -32,11 +32,13 @@ This is a modified derivative of an open-source project. It is an independent co
 
 - Smoothly enlarges the three traffic-light controls when the pointer enters their area, then collapses them when it leaves.
 - Optionally enlarges only the button under the pointer one step further. This option requires hover magnification.
-- Lets you adjust button size and spacing; the default button size is 18 pt.
+- Lets you adjust button size and spacing with a smooth, interactive Liquid Glass slider; the default button size is 18 pt.
 - Preserves the native close, minimize, and zoom actions.
 - Works with foreground and background windows, including supported fullscreen windows and multiple displays.
 - Automatically follows the preferred language set in macOS: Simplified Chinese on a Chinese system, or English on an English system.
 - Stores preferences locally and includes no ads, accounts, analytics, or telemetry.
+
+Persistent display mode may leave visible trailing artifacts while you drag a window because of limitations in the overlay-based implementation. For the smoothest experience, turn off persistent display and use hover magnification instead; the controls enlarge only when the pointer moves over them.
 
 ### Preview
 
@@ -44,10 +46,9 @@ The previews isolate the traffic-light controls; enlarged states are illustrativ
 
 <table>
   <tr>
-    <td width="25%" align="center"><strong>Native controls</strong><br><img src="docs/images/traffic-lights-native.png" alt="Native macOS traffic lights" width="140"></td>
-    <td width="25%" align="center"><strong>Resident overlay</strong><br><img src="docs/images/traffic-lights-always-visible.png" alt="Traffic lights shown persistently" width="140"></td>
-    <td width="25%" align="center"><strong>Hover: group magnification</strong><br><img src="docs/images/traffic-lights-hover-group.png" alt="All three traffic lights enlarged on hover" width="140"></td>
-    <td width="25%" align="center"><strong>Hover: one button enlarged</strong><br><img src="docs/images/traffic-lights-hover-single.png" alt="One traffic light enlarged further on hover" width="140"></td>
+    <td width="33%" align="center"><strong>Native macOS controls</strong><br><img src="docs/images/traffic-lights-native.png" alt="Native macOS traffic lights" width="164"></td>
+    <td width="33%" align="center"><strong>Persistent magnification</strong><br><img src="docs/images/traffic-lights-always-visible.png" alt="Persistently enlarged traffic lights" width="172"></td>
+    <td width="33%" align="center"><strong>One button enlarged further</strong><br><img src="docs/images/traffic-lights-hover-single.png" alt="One traffic light enlarged an extra step" width="164"></td>
   </tr>
 </table>
 
@@ -104,11 +105,13 @@ Better Traffic Lights 是从 [Traffic Lights+](https://github.com/Liu223344/traf
 
 - 鼠标移到窗口左上角红绿灯区域时，三个按钮平滑放大；离开后收起。
 - 可选开启“单个按钮额外放大”，悬停的按钮会再放大一档。该选项依赖悬停放大。
-- 可调整按钮大小与按钮间距，默认按钮大小为 18 pt。
+- 可通过顺滑的液态玻璃滑块调整按钮大小与间距，默认按钮大小为 18 pt。
 - 红、黄、绿按钮仍执行 macOS 原有的关闭、最小化和缩放操作。
 - 前台和后台窗口都可触发；支持标准辅助功能按钮的全屏窗口及多显示器场景。
 - 设置界面自动跟随 macOS 系统语言：系统首选语言为中文时显示简体中文，为英文时显示英文。
 - 设置保存在本机。应用不包含广告、账号、分析统计或遥测。
+
+受覆盖层实现方式的限制，开启常驻模式时，拖动窗口可能会看到红绿灯跟随时留下的拖影。建议关闭常驻模式，改用悬停放大：只有鼠标移到红绿灯区域时，按钮才会放大。
 
 ### 预览
 
@@ -116,10 +119,9 @@ Better Traffic Lights 是从 [Traffic Lights+](https://github.com/Liu223344/traf
 
 <table>
   <tr>
-    <td width="25%" align="center"><strong>原生按钮</strong><br><img src="docs/images/traffic-lights-native.png" alt="macOS 原生红绿灯" width="140"></td>
-    <td width="25%" align="center"><strong>常驻覆盖层</strong><br><img src="docs/images/traffic-lights-always-visible.png" alt="常驻显示的红绿灯" width="140"></td>
-    <td width="25%" align="center"><strong>悬停时整组放大</strong><br><img src="docs/images/traffic-lights-hover-group.png" alt="鼠标悬停时三个按钮一起放大" width="140"></td>
-    <td width="25%" align="center"><strong>悬停时单个按钮额外放大</strong><br><img src="docs/images/traffic-lights-hover-single.png" alt="鼠标悬停时单个按钮再放大一档" width="140"></td>
+    <td width="33%" align="center"><strong>系统原生红绿灯</strong><br><img src="docs/images/traffic-lights-native.png" alt="macOS 系统原生红绿灯" width="164"></td>
+    <td width="33%" align="center"><strong>常驻放大</strong><br><img src="docs/images/traffic-lights-always-visible.png" alt="常驻放大的红绿灯" width="172"></td>
+    <td width="33%" align="center"><strong>单个按钮额外放大</strong><br><img src="docs/images/traffic-lights-hover-single.png" alt="单个红绿灯按钮额外放大一档" width="164"></td>
   </tr>
 </table>
 
