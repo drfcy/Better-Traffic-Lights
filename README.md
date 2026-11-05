@@ -33,12 +33,12 @@ Better Traffic Lights 是从 [Traffic Lights+](https://github.com/Liu223344/traf
   <tr>
     <td width="50%" align="center">
       <a href="docs/images/macos-settings-reference-zh.png">
-        <img src="docs/images/macos-settings-reference-zh.png" alt="macOS 系统设置界面参考图" width="100%">
+        <img src="docs/images/macos-settings-reference-zh.png" alt="macOS 系统设置界面参考图" width="360">
       </a>
     </td>
     <td width="50%" align="center">
       <a href="docs/images/better-traffic-lights-settings-zh.png">
-        <img src="docs/images/better-traffic-lights-settings-zh.png" alt="Better Traffic Lights 简体中文设置界面" width="100%">
+        <img src="docs/images/better-traffic-lights-settings-zh.png" alt="Better Traffic Lights 简体中文设置界面" width="360">
       </a>
     </td>
   </tr>
@@ -102,12 +102,12 @@ This is a modified derivative of an open-source project. It is an independent co
   <tr>
     <td width="50%" align="center">
       <a href="docs/images/macos-settings-reference-zh.png">
-        <img src="docs/images/macos-settings-reference-zh.png" alt="macOS System Settings reference screenshot (Simplified Chinese)" width="100%">
+        <img src="docs/images/macos-settings-reference-zh.png" alt="macOS System Settings reference screenshot (Simplified Chinese)" width="360">
       </a>
     </td>
     <td width="50%" align="center">
       <a href="docs/images/better-traffic-lights-settings-zh.png">
-        <img src="docs/images/better-traffic-lights-settings-zh.png" alt="Better Traffic Lights settings screenshot (Simplified Chinese)" width="100%">
+        <img src="docs/images/better-traffic-lights-settings-zh.png" alt="Better Traffic Lights settings screenshot (Simplified Chinese)" width="360">
       </a>
     </td>
   </tr>
