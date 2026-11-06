@@ -299,7 +299,7 @@ struct SettingsView: View {
 
     private func checkForUpdates() {
         guard !checkingForUpdates,
-              let url = URL(string: "https://api.github.com/repos/drfcy/Better-Traffic-Lights/releases/latest") else { return }
+              let url = URL(string: "https://github.com/drfcy/Better-Traffic-Lights/releases/latest") else { return }
 
         checkingForUpdates = true
         updateReleaseURL = nil
@@ -307,22 +307,23 @@ struct SettingsView: View {
             defer { checkingForUpdates = false }
             do {
                 var request = URLRequest(url: url)
-                request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
                 request.setValue("Better-Traffic-Lights", forHTTPHeaderField: "User-Agent")
+                request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
+                request.httpMethod = "HEAD"
+                request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
                 request.timeoutInterval = 15
-                let (data, response) = try await URLSession.shared.data(for: request)
-                guard (response as? HTTPURLResponse)?.statusCode == 200 else {
+                let (_, response) = try await URLSession.shared.data(for: request)
+                guard let httpResponse = response as? HTTPURLResponse,
+                      httpResponse.statusCode == 200,
+                      let releaseURL = httpResponse.url,
+                      releaseURL.host == "github.com",
+                      releaseURL.path.hasPrefix("/drfcy/Better-Traffic-Lights/releases/tag/"),
+                      let tag = releaseURL.pathComponents.last else {
                     throw UpdateCheckError.invalidResponse
                 }
 
-                let release = try JSONDecoder().decode(GitHubRelease.self, from: data)
-                let latestVersion = release.tagName.trimmingCharacters(in: CharacterSet(charactersIn: "vV"))
+                let latestVersion = tag.trimmingCharacters(in: CharacterSet(charactersIn: "vV"))
                 let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
-                guard let releaseURL = URL(string: release.htmlURL),
-                      releaseURL.host == "github.com",
-                      releaseURL.path.hasPrefix("/drfcy/Better-Traffic-Lights/releases/") else {
-                    throw UpdateCheckError.invalidResponse
-                }
 
                 if Self.compareVersions(latestVersion, currentVersion) == .orderedDescending {
                     updateReleaseURL = releaseURL
@@ -358,16 +359,6 @@ struct SettingsView: View {
             if leftPart > rightPart { return .orderedDescending }
         }
         return .orderedSame
-    }
-
-    private struct GitHubRelease: Decodable {
-        let tagName: String
-        let htmlURL: String
-
-        enum CodingKeys: String, CodingKey {
-            case tagName = "tag_name"
-            case htmlURL = "html_url"
-        }
     }
 
     private enum UpdateCheckError: Error {
