@@ -18,6 +18,31 @@ import Testing
     #expect(ControlLayout.effectiveSpacingAdjustment(preferred: -.infinity) == 0)
 }
 
+@Test func automaticSizeFollowsEachWindowsButtonCenters() {
+    let compact: [WindowAction: CGPoint] = [
+        .close: CGPoint(x: 100, y: 20),
+        .minimize: CGPoint(x: 118, y: 20),
+        .zoom: CGPoint(x: 136, y: 20)
+    ]
+    let standard: [WindowAction: CGPoint] = [
+        .close: CGPoint(x: 100, y: 20),
+        .minimize: CGPoint(x: 123, y: 20),
+        .zoom: CGPoint(x: 146, y: 20)
+    ]
+
+    let compactSpacing = ControlLayout.minimumCenterSpacing(centers: compact)
+    let standardSpacing = ControlLayout.minimumCenterSpacing(centers: standard)
+    #expect(compactSpacing == 18)
+    #expect(standardSpacing == 23)
+    #expect(ControlLayout.adaptiveSize(centerSpacing: compactSpacing, preferred: 18) == 18)
+    #expect(ControlLayout.adaptiveSize(centerSpacing: standardSpacing, preferred: 18) == 23)
+    #expect(ControlLayout.adaptiveSize(centerSpacing: standardSpacing, preferred: 20) == 25)
+    #expect(ControlLayout.adaptiveSize(centerSpacing: nil, preferred: 18) == 18)
+    #expect(ControlLayout.minimumCenterSpacing(centers: [
+        .close: compact[.close]!, .zoom: compact[.zoom]!
+    ]) == 18)
+}
+
 @Test func circleFrameUsesNativeButtonCenter() {
     let native = CGRect(x: 20, y: 12, width: 14, height: 14)
     let enlarged = ControlLayout.frameCentered(on: native, controlSize: 28)

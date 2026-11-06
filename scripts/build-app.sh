@@ -16,10 +16,10 @@ case "$TARGET_ARCH" in
         ;;
 esac
 
-TRIPLE="$TARGET_ARCH-apple-macosx26.0"
+TRIPLE="$TARGET_ARCH-apple-macosx15.0"
 SCRATCH="$ROOT/.build/$TARGET_ARCH"
-APP_BINARY="$SCRATCH/$TARGET_ARCH-apple-macosx/release/TrafficLightsPlus"
-RESOURCE_BUNDLE="$SCRATCH/$TARGET_ARCH-apple-macosx/release/TrafficLightsPlus_TrafficLightsPlus.bundle"
+APP_BINARY="$SCRATCH/release/TrafficLightsPlus"
+RESOURCE_BUNDLE="$SCRATCH/release/TrafficLightsPlus_TrafficLightsPlus.bundle"
 AD_HOC_ENTITLEMENTS="$ROOT/Resources/TrafficLightsPlus.ad-hoc.entitlements"
 
 cd "$ROOT"

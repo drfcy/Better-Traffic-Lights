@@ -55,7 +55,6 @@ final class WindowOverlay {
     static let closeDismissalDuration = 1.0
     private static let revealDuration = 0.10
     private static let magnificationDuration = 0.18
-    private static let groupMagnificationScale: CGFloat = 1.16
     private static let singleButtonMagnificationScale: CGFloat = 1.35
 
     let key: AXWindowKey
@@ -113,11 +112,9 @@ final class WindowOverlay {
     private var interactiveActions = Set<WindowAction>()
     private var lastDesiredActions = Set<WindowAction>()
     private var lastOrderedSingleTarget: WindowAction?
-    private var groupMagnificationProgress: CGFloat = 0
     private var singleMagnificationProgress = Dictionary(
         uniqueKeysWithValues: WindowAction.allCases.map { ($0, CGFloat.zero) }
     )
-    private var lastGroupMagnificationTarget = false
     private var lastSingleMagnificationTarget: WindowAction?
     private var lastPresentationUpdate = 0.0
     private var presentationTimer: Timer?
@@ -227,8 +224,8 @@ final class WindowOverlay {
            configuredBehaviors[hoveredZoomMenuAction] != .zoomWindow {
             cancelZoomMenuRequest(clearTriggeredState: true)
         }
-        let controlSize = ControlLayout.effectiveSize(preferred: preferences.size)
         var buttons: [WindowAction: AXUIElement] = [:]
+        var centers: [WindowAction: CGPoint] = [:]
         var frames: [WindowAction: CGRect] = [:]
 
         for action in WindowAction.allCases {
@@ -254,13 +251,21 @@ final class WindowOverlay {
                     action: action,
                     adjustment: ControlLayout.effectiveSpacingAdjustment(preferred: preferences.spacing)
                 )
-                frames[action] = CGRect(
-                    x: center.x - controlSize / 2,
-                    y: center.y - controlSize / 2,
-                    width: controlSize,
-                    height: controlSize
-                )
+                centers[action] = center
             }
+        }
+
+        let controlSize = ControlLayout.adaptiveSize(
+            centerSpacing: ControlLayout.minimumCenterSpacing(centers: centers),
+            preferred: preferences.size
+        )
+        for (action, center) in centers {
+            frames[action] = CGRect(
+                x: center.x - controlSize / 2,
+                y: center.y - controlSize / 2,
+                width: controlSize,
+                height: controlSize
+            )
         }
 
         report("pid=\(key.pid) fullscreen=\(isFullScreen) controls=\(buttons.count)")
@@ -375,20 +380,13 @@ final class WindowOverlay {
         let groupTarget = hoverMagnificationEnabled && magnificationTargets.isHoveringGroup
         let singleTarget = singleButtonMagnificationEnabled && groupTarget
             ? magnificationTargets.hoveredAction : nil
-        let magnificationTargetChanged = groupTarget != lastGroupMagnificationTarget
-            || singleTarget != lastSingleMagnificationTarget
+        let magnificationTargetChanged = singleTarget != lastSingleMagnificationTarget
         let startingAnimation = presentationTimer == nil
             && (desiredActions != lastDesiredActions || magnificationTargetChanged)
         let elapsed = !startingAnimation && lastPresentationUpdate > 0
             ? min(max(now - lastPresentationUpdate, 0), 0.05) : 0
         lastPresentationUpdate = now
 
-        groupMagnificationProgress = ControlLayout.nextPresentationProgress(
-            current: groupMagnificationProgress,
-            elapsed: elapsed,
-            expanding: groupTarget,
-            duration: Self.magnificationDuration
-        )
         for action in WindowAction.allCases {
             singleMagnificationProgress[action] = ControlLayout.nextPresentationProgress(
                 current: singleMagnificationProgress[action] ?? 0,
@@ -397,7 +395,6 @@ final class WindowOverlay {
                 duration: Self.magnificationDuration
             )
         }
-        lastGroupMagnificationTarget = groupTarget
         lastSingleMagnificationTarget = singleTarget
 
         for action in WindowAction.allCases {
@@ -423,7 +420,7 @@ final class WindowOverlay {
             progress: presentationProgressByAction,
             availableActions: availableActions,
             desiredActions: desiredActions
-        ) || needsMagnificationAnimation(groupTarget: groupTarget, singleTarget: singleTarget) {
+        ) || needsMagnificationAnimation(singleTarget: singleTarget) {
             startPresentationTimer()
         } else {
             stopPresentationTimer()
@@ -453,12 +450,7 @@ final class WindowOverlay {
         }
     }
 
-    private func needsMagnificationAnimation(
-        groupTarget: Bool,
-        singleTarget: WindowAction?
-    ) -> Bool {
-        let groupProgress = groupMagnificationProgress
-        if groupTarget ? groupProgress < 1 : groupProgress > 0 { return true }
+    private func needsMagnificationAnimation(singleTarget: WindowAction?) -> Bool {
         return WindowAction.allCases.contains { action in
             let progress = singleMagnificationProgress[action] ?? 0
             return singleTarget == action ? progress < 1 : progress > 0
@@ -519,12 +511,11 @@ final class WindowOverlay {
                     to: targetFrame,
                     progress: progress
                 )
-                let groupScale = 1 + (Self.groupMagnificationScale - 1) * groupMagnificationProgress
                 let singleProgress = singleMagnificationProgress[action] ?? 0
                 let singleScale = 1 + (Self.singleButtonMagnificationScale - 1) * singleProgress
                 let magnifiedFrame = ControlLayout.frameMagnifiedAroundCenter(
                     cgFrame,
-                    scale: groupScale * singleScale
+                    scale: singleScale
                 )
                 frame = appKitFrame(for: magnifiedFrame)
             } else {
@@ -692,9 +683,7 @@ final class WindowOverlay {
     private func resetPresentationProgress() {
         pointerTrackingActive = false
         for action in WindowAction.allCases { presentationProgressByAction[action] = 0 }
-        groupMagnificationProgress = 0
         for action in WindowAction.allCases { singleMagnificationProgress[action] = 0 }
-        lastGroupMagnificationTarget = false
         lastSingleMagnificationTarget = nil
         isRevealEngaged = false
         interactiveActions.removeAll(keepingCapacity: true)
@@ -750,7 +739,7 @@ final class WindowOverlay {
     private func updatePanelFrame() {
         var stableFrame: NSRect?
         var buttonExtents: [WindowAction: NSRect] = [:]
-        let maxScale = Self.groupMagnificationScale * Self.singleButtonMagnificationScale
+        let maxScale = Self.singleButtonMagnificationScale
         for action in preparedActions {
             guard let target = preparedCGFrames[action],
                   let native = nativeCGFrame(for: action) else { continue }

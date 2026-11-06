@@ -97,7 +97,7 @@ struct SettingsView: View {
                 sliderControl(
                     .buttonSize,
                     symbol: "circle.circle",
-                    valueText: "\(Int(preferences.size)) pt",
+                    valueText: sizeDescription,
                     value: $preferences.size,
                     range: ControlLayout.sizeRange,
                     step: 1,
@@ -423,6 +423,13 @@ struct SettingsView: View {
         }
     }
 
+    private var sizeDescription: String {
+        let adjustment = Int(preferences.size - ControlLayout.defaultSize)
+        return adjustment == 0
+            ? localized(.automaticButtonSize)
+            : "\(localized(.automaticButtonSize)) +\(adjustment) pt"
+    }
+
     private var spacingDescription: String {
         let spacing = Int(preferences.spacing)
         if spacing == 0 { return localized(.systemSpacing) }
@@ -549,18 +556,17 @@ private struct SettingsSlider: View {
 
     private var sliderThumb: some View {
         Capsule()
-            .fill(.white.opacity(0.12))
+            .fill(Color(nsColor: .controlBackgroundColor))
             .frame(width: thumbWidth, height: thumbHeight)
-            .glassEffect(.regular.interactive(), in: Capsule())
             .overlay {
-                Capsule().strokeBorder(.white.opacity(0.62), lineWidth: 0.8)
+                Capsule().strokeBorder(Color.primary.opacity(0.18), lineWidth: 0.8)
             }
             .overlay(alignment: .top) {
                 Capsule()
-                    .fill(.white.opacity(0.60))
+                    .fill(.white.opacity(0.38))
                     .frame(width: thumbWidth * 0.48, height: 1)
                     .padding(.top, 2)
             }
-            .shadow(color: .black.opacity(0.15), radius: 2, y: 1)
+            .shadow(color: .black.opacity(0.16), radius: 2, y: 1)
     }
 }

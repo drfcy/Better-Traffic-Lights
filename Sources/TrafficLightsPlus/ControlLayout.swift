@@ -7,6 +7,9 @@ struct ControlLayout {
     static let sizeRange = 18.0...33.0
     static let spacingAdjustmentRange = -8.0...15.0
     static let activationPadding: CGFloat = 6
+    // Artwork is inset by 1 pt on each side, so a frame as wide as the center
+    // spacing leaves a 2 pt visible gap between the colored circles.
+    static let automaticButtonFrameGap: CGFloat = 0
 
     static func effectiveSize(preferred: Double) -> CGFloat {
         guard preferred.isFinite else { return CGFloat(defaultSize) }
@@ -19,6 +22,29 @@ struct ControlLayout {
             max(preferred, spacingAdjustmentRange.lowerBound),
             spacingAdjustmentRange.upperBound
         ))
+    }
+
+    static func minimumCenterSpacing(centers: [WindowAction: CGPoint]) -> CGFloat? {
+        let ordered = displayOrder(for: .macOS).enumerated().compactMap { index, action -> (Int, CGPoint)? in
+            guard let center = centers[action] else { return nil }
+            return (index, center)
+        }
+        let spacings = zip(ordered, ordered.dropFirst()).compactMap { left, right -> CGFloat? in
+            let steps = CGFloat(right.0 - left.0)
+            let spacing = abs(right.1.x - left.1.x) / steps
+            return spacing.isFinite && spacing > 0 ? spacing : nil
+        }
+        return spacings.min()
+    }
+
+    static func adaptiveSize(centerSpacing: CGFloat?, preferred: Double) -> CGFloat {
+        let preferredSize = effectiveSize(preferred: preferred)
+        guard let centerSpacing, centerSpacing.isFinite, centerSpacing > 0 else { return preferredSize }
+        let adjustment = preferredSize - CGFloat(defaultSize)
+        return min(
+            CGFloat(sizeRange.upperBound),
+            max(12, centerSpacing - automaticButtonFrameGap + adjustment)
+        )
     }
 
     static func centerByAdjustingSystemSpacing(

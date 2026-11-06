@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- Lowered the minimum supported system to macOS 15 for Apple Silicon and Intel Macs.
+- Sized enlarged traffic lights from each window's native button spacing, leaving a small gap while keeping optional extra magnification for the hovered button.
+- Retried new-window matching briefly when a window-opening animation makes Accessibility and WindowServer report different frames.
+- Replaced the settings slider's Liquid Glass material with a solid thumb.
+
 ## 1.5.2 - 2026-09-21
 
 - Zoom buttons that showed the native zoom menu now perform a real native click after the menu closes, so clicks on an enlarged zoom control are no longer swallowed by the menu tracking session.

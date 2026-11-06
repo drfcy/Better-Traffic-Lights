@@ -1,6 +1,6 @@
 # Better Traffic Lights
 
-[![macOS 26+](https://img.shields.io/badge/macOS-26%2B-black)](https://www.apple.com/macos/)
+[![macOS 15+](https://img.shields.io/badge/macOS-15%2B-black)](https://www.apple.com/macos/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
 **Make the red, yellow, and green controls easier to see and use.** Better Traffic Lights is a small macOS menu bar app focused on one job: magnifying a window’s traffic-light controls when you move the pointer over them.
@@ -11,7 +11,7 @@
 
 ### Requirements
 
-- macOS 26 Tahoe or later.
+- macOS 15 or later.
 - Apple Silicon or Intel Mac.
 
 ### Why we built this
@@ -32,7 +32,7 @@ This is a modified derivative of an open-source project. It is an independent co
 
 - Smoothly enlarges the three traffic-light controls when the pointer enters their area, then collapses them when it leaves.
 - Optionally enlarges only the button under the pointer one step further. This option requires hover magnification.
-- Lets you adjust button size and spacing with a smooth, interactive Liquid Glass slider; the default button size is 18 pt.
+- Automatically sizes the enlarged controls to each window's native button spacing, leaving a small visible gap. The solid-style sliders let you adjust size and spacing; the default size setting is Auto.
 - Preserves the native close, minimize, and zoom actions.
 - Works with foreground and background windows, including supported fullscreen windows and multiple displays.
 - Automatically follows the preferred language set in macOS: Simplified Chinese on a Chinese system, or English on an English system.
@@ -48,9 +48,14 @@ This animation shows the traffic lights at rest, enlarging when the pointer hove
 
 ### Install and permissions
 
-Get a package from [Releases](https://github.com/drfcy/Better-Traffic-Lights/releases) and move `Better Traffic Lights.app` to Applications. On first use, allow Better Traffic Lights under **System Settings > Privacy & Security > Accessibility**. The permission is used to locate standard window controls and invoke their corresponding window actions.
+Get a package from [Releases](https://github.com/drfcy/Better-Traffic-Lights/releases) and move `Better Traffic Lights.app` to Applications. The current packages use ad-hoc signing rather than an Apple Developer ID and are not notarized, so macOS may block the first launch. To open a package you downloaded from this project:
 
-Public builds currently use ad-hoc signing and are not notarized by Apple. If macOS blocks the app on first launch, right-click it in Finder and choose **Open**.
+1. Try opening `Better Traffic Lights.app` from Applications.
+2. If the warning offers **Move to Trash**, choose **Done** or **Cancel**. Do **not** move the app to the Trash.
+3. Open **System Settings > Privacy & Security**, scroll to **Security**, and click **Open Anyway** for Better Traffic Lights.
+4. Confirm **Open** in the follow-up prompt.
+
+Then allow Better Traffic Lights under **System Settings > Privacy & Security > Accessibility**. This separate permission lets the app locate standard window controls and invoke their corresponding window actions. See [Apple's instructions for opening an unnotarized app](https://support.apple.com/en-us/102445) for more about the macOS security prompt.
 
 ### Build from source
 
@@ -78,7 +83,7 @@ This repository is modified from [Liu223344/traffic-light-plus](https://github.c
 
 ### 系统要求
 
-- macOS 26 Tahoe 或更高版本。
+- macOS 15 或更高版本。
 - Apple Silicon 或 Intel Mac。
 
 ### 为什么做这个软件
@@ -99,7 +104,7 @@ Better Traffic Lights 是从 [Traffic Lights+](https://github.com/Liu223344/traf
 
 - 鼠标移到窗口左上角红绿灯区域时，三个按钮平滑放大；离开后收起。
 - 可选开启“单个按钮额外放大”，悬停的按钮会再放大一档。该选项依赖悬停放大。
-- 可通过顺滑的液态玻璃滑块调整按钮大小与间距，默认按钮大小为 18 pt。
+- 根据各窗口原生红绿灯的中心间距自动计算放大按钮的大小，并保留细小空隙；也可通过普通材质的滑块调整大小与间距，按钮大小默认设为“自动”。
 - 红、黄、绿按钮仍执行 macOS 原有的关闭、最小化和缩放操作。
 - 前台和后台窗口都可触发；支持标准辅助功能按钮的全屏窗口及多显示器场景。
 - 设置界面自动跟随 macOS 系统语言：系统首选语言为中文时显示简体中文，为英文时显示英文。
@@ -115,9 +120,14 @@ Better Traffic Lights 是从 [Traffic Lights+](https://github.com/Liu223344/traf
 
 ### 安装与权限
 
-从 [Releases](https://github.com/drfcy/Better-Traffic-Lights/releases) 获取发布包，将 `Better Traffic Lights.app` 拖到“应用程序”文件夹。首次使用时，在“系统设置 > 隐私与安全性 > 辅助功能”中允许 Better Traffic Lights。该权限用于读取标准窗口按钮的位置并执行对应的窗口操作。
+从 [Releases](https://github.com/drfcy/Better-Traffic-Lights/releases) 获取发布包，将 `Better Traffic Lights.app` 拖到“应用程序”文件夹。目前的安装包采用 ad-hoc 临时签名，没有 Apple Developer ID 签名，也未经过 Apple 公证，因此 macOS 可能在首次启动时拦截。安装从本项目下载的版本时：
 
-公开构建目前使用 ad-hoc 签名，尚未经过 Apple 公证。首次启动若被 macOS 拦截，可在 Finder 中右键应用并选择“打开”。
+1. 在“应用程序”中尝试打开 `Better Traffic Lights.app`。
+2. 如果提示框有“移到废纸篓”，请点“完成”或“取消”，**不要点“移到废纸篓”**。
+3. 打开“系统设置 > 隐私与安全性”，向下找到“安全性”区域，点击 Better Traffic Lights 对应的**“仍要打开”**。
+4. 在随后出现的提示中确认“打开”。
+
+之后，还需在“系统设置 > 隐私与安全性 > 辅助功能”中允许 Better Traffic Lights。这项独立权限用于读取标准窗口按钮的位置并执行对应的窗口操作。关于首次打开的安全提示，可参阅 [Apple 官方说明](https://support.apple.com/zh-cn/102445)。
 
 ### 从源码构建
 

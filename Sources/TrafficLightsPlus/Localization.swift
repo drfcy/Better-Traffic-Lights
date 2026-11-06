@@ -45,6 +45,7 @@ enum AppString: String, CaseIterable {
     case appearanceMacOS = "appearance.macos"
     case appearanceEdgeSquares = "appearance.edge_squares"
     case buttonSize = "button.size"
+    case automaticButtonSize = "button.size.automatic"
     case restoreDefault = "button.restore_default"
     case buttonSpacing = "button.spacing"
     case restoreSystemSpacing = "button.restore_system_spacing"

@@ -30,7 +30,7 @@ BINARY="$APP/Contents/MacOS/TrafficLightsPlus"
 
 [[ "$(plutil -extract CFBundleShortVersionString raw "$INFO")" == "$EXPECTED_VERSION" ]]
 [[ "$(plutil -extract CFBundleVersion raw "$INFO")" == "$EXPECTED_BUILD" ]]
-[[ "$(plutil -extract LSMinimumSystemVersion raw "$INFO")" == "26.0" ]]
+[[ "$(plutil -extract LSMinimumSystemVersion raw "$INFO")" == "15.0" ]]
 lipo "$BINARY" -verify_arch "$ARCH"
 codesign --verify --deep --strict "$APP"
 

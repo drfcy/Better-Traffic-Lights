@@ -11,6 +11,7 @@
 "appearance.macos" = "macOS 圆形";
 "appearance.edge_squares" = "左侧贴边方块";
 "button.size" = "按钮大小";
+"button.size.automatic" = "自动";
 "button.restore_default" = "恢复默认";
 "button.spacing" = "按钮间距";
 "button.restore_system_spacing" = "恢复系统间距";

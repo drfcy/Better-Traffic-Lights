@@ -56,6 +56,8 @@ final class WindowTracker {
     private var pendingWindowRecalibrations = Set<AXWindowKey>()
     private var applicationRefreshScheduled = false
     private var pendingApplicationRefreshPIDs = Set<pid_t>()
+    private var pendingNewWindowRetries: [AXWindowKey: Int] = [:]
+    private var newWindowRetryScheduled = false
     private var lastActivePID: pid_t?
     private var subscriptions = Set<AnyCancellable>()
     private var workspaceObservers: [NSObjectProtocol] = []
@@ -169,7 +171,10 @@ final class WindowTracker {
         if preferences.enabled { refreshVisibility() }
     }
 
-    private func refreshApplication(_ app: NSRunningApplication) -> Set<AXWindowKey>? {
+    private func refreshApplication(
+        _ app: NSRunningApplication,
+        trackNewWindows: Bool = false
+    ) -> Set<AXWindowKey>? {
         let pid = app.processIdentifier
         let appElement = AXUIElementCreateApplication(pid)
         AXUIElementSetMessagingTimeout(appElement, 1.0)
@@ -185,7 +190,10 @@ final class WindowTracker {
             if applications[pid]?.windowKeys.contains(key) != true {
                 registerWindowNotifications(for: key)
             }
-            if overlays[key] == nil { overlays[key] = WindowOverlay(key: key) }
+            if overlays[key] == nil {
+                overlays[key] = WindowOverlay(key: key)
+                if trackNewWindows { pendingNewWindowRetries[key] = 0 }
+            }
             if overlays[key]?.update(preferences: preferences) != true { overlays[key]?.hide() }
         }
 
@@ -224,6 +232,13 @@ final class WindowTracker {
             } else if preferences.enabled {
                 scheduleRefresh(for: [pid])
             }
+        case kAXWindowCreatedNotification:
+            // Finder can report the final AX frame while WindowServer is still
+            // animating the new window from its icon. Remember the window even
+            // if AXWindows does not contain it on the first refresh.
+            let role: String? = copyAttribute(kAXRoleAttribute as CFString, from: element)
+            if role == kAXWindowRole as String { pendingNewWindowRetries[key] = 0 }
+            scheduleRefresh(for: [pid])
         default:
             scheduleRefresh(for: [pid])
         }
@@ -268,6 +283,7 @@ final class WindowTracker {
     }
 
     private func removeOverlay(for key: AXWindowKey) {
+        pendingNewWindowRetries.removeValue(forKey: key)
         overlays.removeValue(forKey: key)?.hide()
         guard let app = applications[key.pid] else { return }
         for notification in [
@@ -309,9 +325,45 @@ final class WindowTracker {
                 permanentMagnifiedButtonsEnabled: preferences.permanentMagnifiedButtonsEnabled,
                 singleButtonMagnificationEnabled: preferences.singleButtonMagnificationEnabled
             )
+            if !overlay.controlFrames.isEmpty {
+                pendingNewWindowRetries.removeValue(forKey: overlay.key)
+            }
             if !visibleActions.isEmpty { shown += 1 }
         }
+        scheduleNewWindowRetryIfNeeded()
         logger.debug("Visible overlays: \(shown, privacy: .public) / \(self.overlays.count, privacy: .public)")
+    }
+
+    private func scheduleNewWindowRetryIfNeeded() {
+        guard !newWindowRetryScheduled,
+              pendingNewWindowRetries.values.contains(where: { $0 < 3 }) else { return }
+        newWindowRetryScheduled = true
+        // Opening animations briefly give AX and WindowServer different frames.
+        // Retry only the affected applications, for at most three short steps.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
+            guard let self else { return }
+            self.newWindowRetryScheduled = false
+            guard self.preferences.enabled, AXIsProcessTrusted() else {
+                self.pendingNewWindowRetries.removeAll()
+                return
+            }
+            let keys = self.pendingNewWindowRetries.keys.filter {
+                (self.pendingNewWindowRetries[$0] ?? 3) < 3
+            }
+            guard !keys.isEmpty else { return }
+            for key in keys {
+                self.pendingNewWindowRetries[key, default: 0] += 1
+            }
+            for pid in Set(keys.map(\.pid)) {
+                guard let app = NSRunningApplication(processIdentifier: pid), !app.isTerminated else {
+                    self.removeApplication(pid: pid)
+                    continue
+                }
+                _ = self.refreshApplication(app)
+            }
+            self.refreshVisibility()
+            self.pendingNewWindowRetries = self.pendingNewWindowRetries.filter { $0.value < 3 }
+        }
     }
 
     private func handlePointerMovement() {
@@ -503,7 +555,7 @@ final class WindowTracker {
                     self.removeApplication(pid: pid)
                     continue
                 }
-                _ = self.refreshApplication(app)
+                _ = self.refreshApplication(app, trackNewWindows: true)
             }
             self.reportScan("event apps=\(pids.count) overlays=\(self.overlays.count)")
             self.refreshVisibility()

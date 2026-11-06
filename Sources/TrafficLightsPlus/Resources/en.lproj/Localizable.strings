@@ -11,6 +11,7 @@
 "appearance.macos" = "macOS Circles";
 "appearance.edge_squares" = "Left-Aligned Squares";
 "button.size" = "Button Size";
+"button.size.automatic" = "Auto";
 "button.restore_default" = "Reset";
 "button.spacing" = "Button Spacing";
 "button.restore_system_spacing" = "Use System Spacing";
