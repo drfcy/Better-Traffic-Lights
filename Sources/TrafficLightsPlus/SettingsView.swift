@@ -1,10 +1,14 @@
 import AppKit
 import ApplicationServices
+import Foundation
 import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var preferences: Preferences
     @State private var accessibilityGranted = AXIsProcessTrusted()
+    @State private var checkingForUpdates = false
+    @State private var updateAlertMessage: String?
+    @State private var updateReleaseURL: URL?
 
     var body: some View {
         ScrollView {
@@ -24,6 +28,19 @@ struct SettingsView: View {
         .background(Color(nsColor: .windowBackgroundColor))
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             accessibilityGranted = AXIsProcessTrusted()
+        }
+        .alert(localized(.updateAlertTitle), isPresented: updateAlertIsPresented) {
+            if let updateReleaseURL {
+                Button(localized(.openRelease)) {
+                    NSWorkspace.shared.open(updateReleaseURL)
+                    clearUpdateAlert()
+                }
+            }
+            Button(localized(.ok), role: .cancel) {
+                clearUpdateAlert()
+            }
+        } message: {
+            Text(updateAlertMessage ?? "")
         }
     }
 
@@ -264,9 +281,14 @@ struct SettingsView: View {
                         .lineLimit(1)
                 }
                 Spacer(minLength: 8)
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 10, weight: .semibold))
-                    .foregroundStyle(.tertiary)
+                if title == .checkForUpdates && checkingForUpdates {
+                    ProgressView()
+                        .controlSize(.small)
+                } else {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(.tertiary)
+                }
             }
             .frame(minHeight: 48)
             .contentShape(Rectangle())
@@ -276,8 +298,80 @@ struct SettingsView: View {
     }
 
     private func checkForUpdates() {
-        guard let url = URL(string: "https://github.com/drfcy/better-traffic-lights/releases/latest") else { return }
-        NSWorkspace.shared.open(url)
+        guard !checkingForUpdates,
+              let url = URL(string: "https://api.github.com/repos/drfcy/Better-Traffic-Lights/releases/latest") else { return }
+
+        checkingForUpdates = true
+        updateReleaseURL = nil
+        Task {
+            defer { checkingForUpdates = false }
+            do {
+                var request = URLRequest(url: url)
+                request.setValue("application/vnd.github+json", forHTTPHeaderField: "Accept")
+                request.setValue("Better-Traffic-Lights", forHTTPHeaderField: "User-Agent")
+                request.timeoutInterval = 15
+                let (data, response) = try await URLSession.shared.data(for: request)
+                guard (response as? HTTPURLResponse)?.statusCode == 200 else {
+                    throw UpdateCheckError.invalidResponse
+                }
+
+                let release = try JSONDecoder().decode(GitHubRelease.self, from: data)
+                let latestVersion = release.tagName.trimmingCharacters(in: CharacterSet(charactersIn: "vV"))
+                let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
+                guard let releaseURL = URL(string: release.htmlURL),
+                      releaseURL.host == "github.com",
+                      releaseURL.path.hasPrefix("/drfcy/Better-Traffic-Lights/releases/") else {
+                    throw UpdateCheckError.invalidResponse
+                }
+
+                if Self.compareVersions(latestVersion, currentVersion) == .orderedDescending {
+                    updateReleaseURL = releaseURL
+                    updateAlertMessage = localized(.updateAvailable, arguments: [latestVersion])
+                } else {
+                    updateAlertMessage = localized(.updateUpToDate, arguments: [currentVersion])
+                }
+            } catch {
+                updateAlertMessage = localized(.updateCheckFailed)
+            }
+        }
+    }
+
+    private var updateAlertIsPresented: Binding<Bool> {
+        Binding(
+            get: { updateAlertMessage != nil },
+            set: { if !$0 { clearUpdateAlert() } }
+        )
+    }
+
+    private func clearUpdateAlert() {
+        updateAlertMessage = nil
+        updateReleaseURL = nil
+    }
+
+    private static func compareVersions(_ lhs: String, _ rhs: String) -> ComparisonResult {
+        let left = lhs.split(separator: ".").map { Int($0) ?? 0 }
+        let right = rhs.split(separator: ".").map { Int($0) ?? 0 }
+        for index in 0..<max(left.count, right.count) {
+            let leftPart = index < left.count ? left[index] : 0
+            let rightPart = index < right.count ? right[index] : 0
+            if leftPart < rightPart { return .orderedAscending }
+            if leftPart > rightPart { return .orderedDescending }
+        }
+        return .orderedSame
+    }
+
+    private struct GitHubRelease: Decodable {
+        let tagName: String
+        let htmlURL: String
+
+        enum CodingKeys: String, CodingKey {
+            case tagName = "tag_name"
+            case htmlURL = "html_url"
+        }
+    }
+
+    private enum UpdateCheckError: Error {
+        case invalidResponse
     }
 
     private func showAbout() {
@@ -329,8 +423,8 @@ struct SettingsView: View {
         }
     }
 
-    private func localized(_ key: AppString) -> String {
-        AppLocalization.string(key, language: preferences.language)
+    private func localized(_ key: AppString, arguments: [CVarArg] = []) -> String {
+        AppLocalization.string(key, language: preferences.language, arguments: arguments)
     }
 }
 

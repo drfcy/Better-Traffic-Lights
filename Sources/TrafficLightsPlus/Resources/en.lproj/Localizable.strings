@@ -68,6 +68,12 @@
 "settings.section.general" = "General";
 "settings.section.updates" = "Updates and About";
 "software_updates.check.description" = "View the latest version and release notes.";
+"software_updates.alert.title" = "Check for Updates";
+"software_updates.checking" = "Checking…";
+"software_updates.available" = "Version %@ is available. Open the GitHub release page to review and download it.";
+"software_updates.up_to_date" = "You are using the latest version (%@).";
+"software_updates.check_failed" = "Could not connect to the Better Traffic Lights GitHub update source. Check your network and try again.";
+"software_updates.open_release" = "Open Download Page";
 "about.title" = "About Better Traffic Lights";
 "about.description" = "Version, copyright, and app details.";
 "overlay.permanent_magnified_buttons.description" = "Keep the enlarged buttons visible.";
