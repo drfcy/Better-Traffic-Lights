@@ -42,15 +42,9 @@ Persistent display mode may leave visible trailing artifacts while you drag a wi
 
 ### Preview
 
-The previews isolate the traffic-light controls; enlarged states are illustrative scale previews. The app follows the preferred language in macOS, showing Simplified Chinese when a Chinese language is preferred and English otherwise.
+This animation shows the traffic lights at rest, enlarging when the pointer hovers over them, and returning to their normal size when the pointer moves away. The app follows the preferred language in macOS, showing Simplified Chinese when a Chinese language is preferred and English otherwise.
 
-<table>
-  <tr>
-    <td width="33%" align="center"><strong>Native macOS controls</strong><br><img src="docs/images/traffic-lights-native.png" alt="Native macOS traffic lights" width="164"></td>
-    <td width="33%" align="center"><strong>Persistent magnification</strong><br><img src="docs/images/traffic-lights-always-visible.png" alt="Persistently enlarged traffic lights" width="172"></td>
-    <td width="33%" align="center"><strong>One button enlarged further</strong><br><img src="docs/images/traffic-lights-hover-single.png" alt="One traffic light enlarged an extra step" width="164"></td>
-  </tr>
-</table>
+<p align="center"><img src="docs/images/traffic-lights-hover-demo.gif" alt="Traffic lights enlarging smoothly on hover" width="500"></p>
 
 ### Install and permissions
 
@@ -115,15 +109,9 @@ Better Traffic Lights 是从 [Traffic Lights+](https://github.com/Liu223344/traf
 
 ### 预览
 
-预览图只展示红绿灯按钮区域；放大状态为比例示意。应用会跟随 macOS 的首选语言：中文首选语言显示简体中文，其他语言默认显示英文。
+这段动画展示了红绿灯的原生状态、鼠标悬停时的平滑放大，以及鼠标移开后的收回效果。应用会跟随 macOS 的首选语言：中文首选语言显示简体中文，其他语言默认显示英文。
 
-<table>
-  <tr>
-    <td width="33%" align="center"><strong>系统原生红绿灯</strong><br><img src="docs/images/traffic-lights-native.png" alt="macOS 系统原生红绿灯" width="164"></td>
-    <td width="33%" align="center"><strong>常驻放大</strong><br><img src="docs/images/traffic-lights-always-visible.png" alt="常驻放大的红绿灯" width="172"></td>
-    <td width="33%" align="center"><strong>单个按钮额外放大</strong><br><img src="docs/images/traffic-lights-hover-single.png" alt="单个红绿灯按钮额外放大一档" width="164"></td>
-  </tr>
-</table>
+<p align="center"><img src="docs/images/traffic-lights-hover-demo.gif" alt="鼠标悬停时红绿灯平滑放大" width="500"></p>
 
 ### 安装与权限
 
