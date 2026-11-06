@@ -75,7 +75,9 @@
 "software_updates.check_failed" = "暂时无法连接 Better Traffic Lights 的 GitHub 更新源，请检查网络后重试。";
 "software_updates.open_release" = "打开下载页面";
 "about.title" = "关于 Better Traffic Lights";
-"about.description" = "版本信息、版权与应用详情。";
+"about.description" = "开源项目与版本信息。";
+"about.version" = "版本 %@";
+"about.github" = "GitHub 项目主页";
 "overlay.permanent_magnified_buttons.description" = "让放大按钮保持显示。";
 "overlay.hover_magnification.description" = "指针移到窗口红绿灯附近时放大。";
 "overlay.single_button_magnification.description" = "只额外放大指针所在的按钮。";

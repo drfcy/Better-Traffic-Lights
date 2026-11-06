@@ -73,6 +73,8 @@ enum AppString: String, CaseIterable {
     case openRelease = "software_updates.open_release"
     case about = "about.title"
     case aboutDescription = "about.description"
+    case aboutVersion = "about.version"
+    case aboutGitHub = "about.github"
     case buttonActions = "button_actions.title"
     case redButton = "button.red"
     case yellowButton = "button.yellow"

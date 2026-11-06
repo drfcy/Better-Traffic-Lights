@@ -9,6 +9,7 @@ struct SettingsView: View {
     @State private var checkingForUpdates = false
     @State private var updateAlertMessage: String?
     @State private var updateReleaseURL: URL?
+    @State private var aboutWindow: NSWindow?
 
     var body: some View {
         ScrollView {
@@ -366,8 +367,27 @@ struct SettingsView: View {
     }
 
     private func showAbout() {
+        if let aboutWindow {
+            NSApp.activate(ignoringOtherApps: true)
+            aboutWindow.makeKeyAndOrderFront(nil)
+            return
+        }
+
+        let controller = NSHostingController(rootView: AboutWindowView(language: preferences.language))
+        let window = NSWindow(
+            contentRect: NSRect(x: 0, y: 0, width: 360, height: 280),
+            styleMask: [.titled, .closable],
+            backing: .buffered,
+            defer: false
+        )
+        window.contentViewController = controller
+        window.title = localized(.about)
+        window.isReleasedWhenClosed = false
+        window.tabbingMode = .disallowed
+        window.center()
+        aboutWindow = window
         NSApp.activate(ignoringOtherApps: true)
-        NSApp.orderFrontStandardAboutPanel(nil)
+        window.makeKeyAndOrderFront(nil)
     }
 
     private var permissionStatus: some View {
@@ -416,6 +436,51 @@ struct SettingsView: View {
 
     private func localized(_ key: AppString, arguments: [CVarArg] = []) -> String {
         AppLocalization.string(key, language: preferences.language, arguments: arguments)
+    }
+}
+
+private struct AboutWindowView: View {
+    let language: AppLanguage
+
+    private let repositoryURL = URL(string: "https://github.com/drfcy/Better-Traffic-Lights")!
+
+    var body: some View {
+        VStack(spacing: 13) {
+            Image(nsImage: NSApp.applicationIconImage)
+                .resizable()
+                .frame(width: 68, height: 68)
+                .accessibilityHidden(true)
+
+            Text("Better Traffic Lights")
+                .font(.system(size: 19, weight: .semibold))
+
+            Text(localized(.aboutVersion, arguments: [appVersion]))
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+
+            Link(destination: repositoryURL) {
+                Label(localized(.aboutGitHub), systemImage: "arrow.up.right.square")
+                    .font(.system(size: 13, weight: .medium))
+            }
+            .padding(.top, 3)
+
+            Text(localized(.aboutDescription))
+                .font(.system(size: 11))
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.top, 2)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(22)
+        .background(Color(nsColor: .windowBackgroundColor))
+    }
+
+    private var appVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? ""
+    }
+
+    private func localized(_ key: AppString, arguments: [CVarArg] = []) -> String {
+        AppLocalization.string(key, language: language, arguments: arguments)
     }
 }
 

@@ -75,7 +75,9 @@
 "software_updates.check_failed" = "Could not connect to the Better Traffic Lights GitHub update source. Check your network and try again.";
 "software_updates.open_release" = "Open Download Page";
 "about.title" = "About Better Traffic Lights";
-"about.description" = "Version, copyright, and app details.";
+"about.description" = "Open-source project and version information.";
+"about.version" = "Version %@";
+"about.github" = "GitHub Repository";
 "overlay.permanent_magnified_buttons.description" = "Keep the enlarged buttons visible.";
 "overlay.hover_magnification.description" = "Magnify the controls when the pointer nears them.";
 "overlay.single_button_magnification.description" = "Further enlarge only the button under the pointer.";
