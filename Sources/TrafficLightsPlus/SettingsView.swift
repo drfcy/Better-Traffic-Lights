@@ -373,14 +373,18 @@ struct SettingsView: View {
             return
         }
 
+        let aboutSize = NSSize(width: 380, height: 300)
         let controller = NSHostingController(rootView: AboutWindowView(language: preferences.language))
+        controller.preferredContentSize = aboutSize
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 360, height: 280),
+            contentRect: NSRect(origin: .zero, size: aboutSize),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
         )
         window.contentViewController = controller
+        window.setContentSize(aboutSize)
+        window.contentMinSize = aboutSize
         window.title = localized(.about)
         window.isReleasedWhenClosed = false
         window.tabbingMode = .disallowed
@@ -470,7 +474,7 @@ private struct AboutWindowView: View {
                 .multilineTextAlignment(.center)
                 .padding(.top, 2)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(width: 380, height: 300)
         .padding(22)
         .background(Color(nsColor: .windowBackgroundColor))
     }
