@@ -374,17 +374,16 @@ struct SettingsView: View {
         }
 
         let aboutSize = NSSize(width: 380, height: 300)
-        let controller = NSHostingController(rootView: AboutWindowView(language: preferences.language))
-        controller.preferredContentSize = aboutSize
+        let aboutView = AboutWindowView(language: preferences.language)
+            .frame(width: aboutSize.width, height: aboutSize.height)
         let window = NSWindow(
             contentRect: NSRect(origin: .zero, size: aboutSize),
             styleMask: [.titled, .closable],
             backing: .buffered,
             defer: false
         )
-        window.contentViewController = controller
+        window.contentView = NSHostingView(rootView: aboutView)
         window.setContentSize(aboutSize)
-        window.contentMinSize = aboutSize
         window.title = localized(.about)
         window.isReleasedWhenClosed = false
         window.tabbingMode = .disallowed
@@ -462,10 +461,13 @@ private struct AboutWindowView: View {
                 .font(.system(size: 12))
                 .foregroundStyle(.secondary)
 
-            Link(destination: repositoryURL) {
+            Button {
+                NSWorkspace.shared.open(repositoryURL)
+            } label: {
                 Label(localized(.aboutGitHub), systemImage: "arrow.up.right.square")
                     .font(.system(size: 13, weight: .medium))
             }
+            .buttonStyle(.link)
             .padding(.top, 3)
 
             Text(localized(.aboutDescription))
