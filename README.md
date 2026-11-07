@@ -20,9 +20,13 @@ macOS traffic lights are beautifully integrated into the title bar, but their sm
 
 We were inspired by [Apple’s new touch-enabled MacBook Pro](https://www.apple.com/newsroom/2026/10/apple-unveils-groundbreaking-macbook-pro-with-proled-xdr-display/), where [the traffic-light controls grow when touched](https://www.macrumors.com/2026/10/30/macbook-pro-proled-xdr-details/) to make them easier to choose. We wondered whether a similar, temporary enlargement could help mouse users on ordinary MacBooks and other Macs too. Better Traffic Lights is our attempt to bring that interaction to them.
 
-**The inspiration: touch makes the window controls easier to reach.** The GIF below shows the touch interaction that prompted this project; our app brings a similar enlargement to pointer hover.
+**The inspiration: touch makes the window controls easier to reach.** The first GIF shows the touch interaction that prompted this project; our app brings a similar enlargement to pointer hover.
 
 <p align="center"><img src="docs/images/touch-macbook-traffic-lights.gif" alt="Touch interaction enlarging the MacBook Pro window controls" width="500"></p>
+
+The second GIF shows an individual traffic-light button growing further when touched. It inspired our optional extra enlargement for the button under the pointer.
+
+<p align="center"><img src="docs/images/touch-macbook-single-button.gif" alt="Touch interaction enlarging one MacBook Pro traffic-light button further" width="500"></p>
 
 ### How this project came about
 
@@ -96,9 +100,13 @@ macOS 原生红绿灯外观精致，也与标题栏融为一体，但按钮比�
 
 我们的灵感来自[苹果新推出的支持触控的 MacBook Pro](https://www.apple.com/newsroom/2026/10/apple-unveils-groundbreaking-macbook-pro-with-proled-xdr-display/)：触控时，[窗口红绿灯会放大一圈](https://www.macrumors.com/2026/10/30/macbook-pro-proled-xdr-details/)，方便用户选择。我们由此想到，能否把这种即时放大的反馈也带到普通 MacBook 和其他 Mac 上，让鼠标用户同样更容易点中窗口按钮？Better Traffic Lights 就是对这个问题的一次尝试。
 
-**灵感来源：触控时更容易点中窗口按钮。** 下方 GIF 展示了启发我们做这个项目的触控交互；本软件把类似的放大反馈用于鼠标悬停。
+**灵感来源：触控时更容易点中窗口按钮。** 第一段 GIF 展示了启发我们做这个项目的触控交互；本软件把类似的放大反馈用于鼠标悬停。
 
 <p align="center"><img src="docs/images/touch-macbook-traffic-lights.gif" alt="MacBook Pro 触控时窗口红绿灯放大的效果" width="500"></p>
+
+第二段 GIF 展示了触控时单个红绿灯按钮进一步放大的效果，这也启发了我们的“单个按钮额外放大”选项。
+
+<p align="center"><img src="docs/images/touch-macbook-single-button.gif" alt="MacBook Pro 触控时单个红绿灯按钮进一步放大" width="500"></p>
 
 ### 这个项目是怎么来的
 
