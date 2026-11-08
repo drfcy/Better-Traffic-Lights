@@ -469,14 +469,15 @@ final class WindowTracker {
     }
 
     private func matchingRecordIndex(for overlay: WindowOverlay, in records: [CGWindowRecord]) -> Int? {
+        // Some apps put standard traffic lights on floating windows above layer 0.
         if let windowID = overlay.cgWindowID,
            let boundIndex = records.firstIndex(where: {
-               $0.id == windowID && $0.pid == overlay.key.pid && $0.layer == 0
+               $0.id == windowID && $0.pid == overlay.key.pid
            }) {
             return boundIndex
         }
         let candidates = records.enumerated().filter {
-            $0.element.pid == overlay.key.pid && $0.element.layer == 0
+            $0.element.pid == overlay.key.pid
         }
         return candidates.min { lhs, rhs in
             matchScore(record: lhs.element, overlay: overlay) < matchScore(record: rhs.element, overlay: overlay)
