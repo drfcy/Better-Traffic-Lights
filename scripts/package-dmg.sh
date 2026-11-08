@@ -11,16 +11,16 @@ fi
 
 for ARCH in "${ARCHES[@]}"; do
     APP="$ROOT/.build/package-$ARCH/Better Traffic Lights.app"
-    STAGE="$ROOT/.build/dmg-root-$ARCH"
+    STAGE="$(mktemp -d "${TMPDIR:-/private/tmp}/btl-dmg-root-$ARCH.XXXXXX")"
     DMG="$ROOT/build/Better-Traffic-Lights-$VERSION-$ARCH.dmg"
 
     mkdir -p "$ROOT/build"
     rm -f "$DMG"
     TARGET_ARCH="$ARCH" APP_OUTPUT="$APP" "$ROOT/scripts/build-app.sh"
 
-    rm -rf "$STAGE"
-    mkdir -p "$STAGE"
     ditto "$APP" "$STAGE/Better Traffic Lights.app"
+    xattr -cr "$STAGE/Better Traffic Lights.app"
+    codesign --verify --deep --strict "$STAGE/Better Traffic Lights.app"
     ln -s /Applications "$STAGE/Applications"
 
     hdiutil create \
@@ -30,5 +30,6 @@ for ARCH in "${ARCHES[@]}"; do
         -ov \
         "$DMG"
 
+    rm -rf "$STAGE"
     echo "$DMG"
 done
