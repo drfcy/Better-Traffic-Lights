@@ -25,6 +25,7 @@ private final class ObservedApplication {
     let element: AXUIElement
     let observer: AXObserver
     var windowKeys = Set<AXWindowKey>()
+    var resolvedNotifications = Set<String>()
 
     init(pid: pid_t, element: AXUIElement, observer: AXObserver) {
         self.pid = pid
@@ -46,6 +47,7 @@ struct CGWindowRecord {
 }
 
 final class WindowTracker {
+    private static let startupRetryDelays: [TimeInterval] = [0.4, 0.7, 1.0, 1.2, 1.5]
     private let preferences: Preferences
     private let logger = Logger(subsystem: "app.trafficlightsplus.mac", category: "window-tracker")
     private var overlays: [AXWindowKey: WindowOverlay] = [:]
@@ -57,6 +59,7 @@ final class WindowTracker {
     private var applicationRefreshScheduled = false
     private var pendingApplicationRefreshPIDs = Set<pid_t>()
     private var pendingNewWindowRetries: [AXWindowKey: Int] = [:]
+    private var pendingStartupRetries: [pid_t: Int] = [:]
     private var newWindowRetryScheduled = false
     private var lastActivePID: pid_t?
     private var subscriptions = Set<AnyCancellable>()
@@ -182,6 +185,7 @@ final class WindowTracker {
         guard let windows: [AXUIElement] = copyAttribute(kAXWindowsAttribute as CFString, from: appElement) else {
             return nil
         }
+        if !windows.isEmpty { pendingStartupRetries.removeValue(forKey: pid) }
 
         var seenWindows = Set<AXWindowKey>()
         for window in windows {
@@ -249,21 +253,29 @@ final class WindowTracker {
     }
 
     private func ensureObservedApplication(pid: pid_t, element: AXUIElement) {
-        guard applications[pid] == nil else { return }
-        var observerRef: AXObserver?
-        guard AXObserverCreate(pid, accessibilityObserverCallback, &observerRef) == .success,
-              let observer = observerRef else { return }
-
-        let app = ObservedApplication(pid: pid, element: element, observer: observer)
-        applications[pid] = app
-        CFRunLoopAddSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(observer), .commonModes)
+        let app: ObservedApplication
+        if let existing = applications[pid] {
+            app = existing
+        } else {
+            var observerRef: AXObserver?
+            guard AXObserverCreate(pid, accessibilityObserverCallback, &observerRef) == .success,
+                  let observer = observerRef else { return }
+            app = ObservedApplication(pid: pid, element: element, observer: observer)
+            applications[pid] = app
+            CFRunLoopAddSource(CFRunLoopGetMain(), AXObserverGetRunLoopSource(observer), .commonModes)
+        }
         let context = Unmanaged.passUnretained(self).toOpaque()
         for notification in [
             kAXWindowCreatedNotification,
             kAXFocusedWindowChangedNotification,
             kAXApplicationActivatedNotification
         ] {
-            _ = AXObserverAddNotification(observer, element, notification as CFString, context)
+            let name = notification as String
+            guard !app.resolvedNotifications.contains(name) else { continue }
+            let status = AXObserverAddNotification(app.observer, app.element, notification as CFString, context)
+            if status == .success || status == .notificationAlreadyRegistered || status == .notificationUnsupported {
+                app.resolvedNotifications.insert(name)
+            }
         }
     }
 
@@ -556,14 +568,48 @@ final class WindowTracker {
                     self.removeApplication(pid: pid)
                     continue
                 }
-                _ = self.refreshApplication(app, trackNewWindows: true)
+                let windows = self.refreshApplication(app, trackNewWindows: true)
+                if windows?.isEmpty != false,
+                   pid == NSWorkspace.shared.frontmostApplication?.processIdentifier,
+                   !self.overlays.keys.contains(where: { $0.pid == pid }) {
+                    self.scheduleStartupRetry(for: pid)
+                }
             }
             self.reportScan("event apps=\(pids.count) overlays=\(self.overlays.count)")
             self.refreshVisibility()
         }
     }
 
+    private func scheduleStartupRetry(for pid: pid_t) {
+        guard pendingStartupRetries[pid] == nil else { return }
+        pendingStartupRetries[pid] = 0
+        scheduleNextStartupRetry(for: pid)
+    }
+
+    private func scheduleNextStartupRetry(for pid: pid_t) {
+        guard let attempt = pendingStartupRetries[pid],
+              attempt < Self.startupRetryDelays.count else {
+            pendingStartupRetries.removeValue(forKey: pid)
+            return
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.startupRetryDelays[attempt]) { [weak self] in
+            guard let self, self.pendingStartupRetries[pid] == attempt else { return }
+            guard self.preferences.enabled, AXIsProcessTrusted(),
+                  let app = NSRunningApplication(processIdentifier: pid), !app.isTerminated else {
+                self.pendingStartupRetries.removeValue(forKey: pid)
+                return
+            }
+            self.pendingStartupRetries[pid] = attempt + 1
+            _ = self.refreshApplication(app, trackNewWindows: true)
+            self.refreshVisibility()
+            if self.pendingStartupRetries[pid] != nil {
+                self.scheduleNextStartupRetry(for: pid)
+            }
+        }
+    }
+
     private func removeApplication(pid: pid_t) {
+        pendingStartupRetries.removeValue(forKey: pid)
         let keys = Set(overlays.keys.filter { $0.pid == pid })
             .union(applications[pid]?.windowKeys ?? [])
         for key in keys { removeOverlay(for: key) }
