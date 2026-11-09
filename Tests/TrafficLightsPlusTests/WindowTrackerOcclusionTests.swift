@@ -1,3 +1,4 @@
+import AppKit
 import CoreGraphics
 import Testing
 @testable import TrafficLightsPlus
@@ -66,4 +67,59 @@ import Testing
         alpha: 0,
         bounds: regularBounds
     ))
+}
+
+@Test func elevatedWindowWithStandardControlsCanParticipate() {
+    let bounds = CGRect(x: 763, y: 309, width: 657, height: 579)
+    let menuLevel = Int(CGWindowLevelForKey(.mainMenuWindow))
+
+    #expect(!WindowTracker.shouldIncludeWindowRecord(layer: menuLevel, alpha: 1, bounds: bounds))
+    #expect(WindowTracker.shouldIncludeWindowRecord(
+        layer: menuLevel,
+        alpha: 1,
+        bounds: bounds,
+        allowElevated: true
+    ))
+    #expect(!WindowTracker.shouldIncludeWindowRecord(
+        layer: menuLevel + 1,
+        alpha: 1,
+        bounds: bounds,
+        allowElevated: true
+    ))
+    #expect(OverlayPanel.level(forTargetLayer: menuLevel).rawValue > menuLevel)
+    #expect(OverlayPanel.level(forTargetLayer: 0) == .floating)
+}
+
+@Test func differentWindowTitlesNeedOneExactGeometryMatch() {
+    let bounds = CGRect(x: 763, y: 309, width: 657, height: 579)
+    let clipboard = CGWindowRecord(id: 10, pid: 100, layer: 24, bounds: bounds, title: "剪贴板")
+    let other = CGWindowRecord(
+        id: 11,
+        pid: 100,
+        layer: 24,
+        bounds: CGRect(x: 300, y: 200, width: 400, height: 300),
+        title: "Other"
+    )
+
+    #expect(WindowTracker.matchingRecordIndex(
+        pid: 100,
+        windowID: nil,
+        frame: bounds,
+        title: "BTT Clipboard Manager",
+        records: [clipboard, other]
+    ) == 0)
+    #expect(WindowTracker.matchingRecordIndex(
+        pid: 100,
+        windowID: nil,
+        frame: bounds,
+        title: "BTT Clipboard Manager",
+        records: [clipboard, clipboard]
+    ) == nil)
+    #expect(WindowTracker.matchingRecordIndex(
+        pid: 100,
+        windowID: nil,
+        frame: bounds.offsetBy(dx: 10, dy: 0),
+        title: "BTT Clipboard Manager",
+        records: [clipboard]
+    ) == nil)
 }

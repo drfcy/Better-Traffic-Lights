@@ -323,6 +323,7 @@ final class WindowTracker {
                 continue
             }
             overlay.bind(to: records[targetIndex].id)
+            overlay.setTargetLayer(records[targetIndex].layer)
             overlay.syncPosition(to: records[targetIndex].bounds)
             let visibleActions = unobscuredActions(
                 for: overlay,
@@ -481,32 +482,63 @@ final class WindowTracker {
     }
 
     private func matchingRecordIndex(for overlay: WindowOverlay, in records: [CGWindowRecord]) -> Int? {
-        // Some apps put standard traffic lights on floating windows above layer 0.
-        if let windowID = overlay.cgWindowID,
+        Self.matchingRecordIndex(
+            pid: overlay.key.pid,
+            windowID: overlay.cgWindowID,
+            frame: overlay.windowFrame,
+            title: overlay.title,
+            records: records
+        )
+    }
+
+    static func matchingRecordIndex(
+        pid: pid_t,
+        windowID: CGWindowID?,
+        frame: CGRect,
+        title: String,
+        records: [CGWindowRecord]
+    ) -> Int? {
+        if let windowID,
            let boundIndex = records.firstIndex(where: {
-               $0.id == windowID && $0.pid == overlay.key.pid
+               $0.id == windowID && $0.pid == pid
            }) {
             return boundIndex
         }
         let candidates = records.enumerated().filter {
-            $0.element.pid == overlay.key.pid
+            $0.element.pid == pid
         }
-        return candidates.min { lhs, rhs in
-            matchScore(record: lhs.element, overlay: overlay) < matchScore(record: rhs.element, overlay: overlay)
-        }.flatMap { matchScore(record: $0.element, overlay: overlay) < 24 ? $0.offset : nil }
+        if let best = candidates.min(by: {
+            matchScore(record: $0.element, frame: frame, title: title)
+                < matchScore(record: $1.element, frame: frame, title: title)
+        }), matchScore(record: best.element, frame: frame, title: title) < 24 {
+            return best.offset
+        }
+
+        // Accessibility and WindowServer can give one window different titles.
+        // Accept that only when its geometry identifies a unique same-process window.
+        let exactGeometry = candidates.filter {
+            geometryScore(record: $0.element, frame: frame) < 8
+        }
+        return exactGeometry.count == 1 ? exactGeometry[0].offset : nil
     }
 
-    private func matchScore(record: CGWindowRecord, overlay: WindowOverlay) -> CGFloat {
-        let frame = overlay.windowFrame
-        var score = abs(record.bounds.minX - frame.minX)
+    private static func geometryScore(record: CGWindowRecord, frame: CGRect) -> CGFloat {
+        abs(record.bounds.minX - frame.minX)
             + abs(record.bounds.minY - frame.minY)
             + abs(record.bounds.width - frame.width)
             + abs(record.bounds.height - frame.height)
-        if !overlay.title.isEmpty, !record.title.isEmpty, overlay.title != record.title { score += 100 }
+    }
+
+    private static func matchScore(record: CGWindowRecord, frame: CGRect, title: String) -> CGFloat {
+        var score = geometryScore(record: record, frame: frame)
+        if !title.isEmpty, !record.title.isEmpty, title != record.title { score += 100 }
         return score
     }
 
     private func cgWindowRecords() -> [CGWindowRecord] {
+        let elevatedCandidatePIDs = Set(overlays.values.filter {
+            $0.controlFrames.count == WindowAction.allCases.count
+        }.map { $0.key.pid })
         guard let list = CGWindowListCopyWindowInfo(
             [.optionOnScreenOnly, .excludeDesktopElements],
             kCGNullWindowID
@@ -525,7 +557,8 @@ final class WindowTracker {
                   Self.shouldIncludeWindowRecord(
                       layer: layer,
                       alpha: alpha,
-                      bounds: bounds
+                      bounds: bounds,
+                      allowElevated: elevatedCandidatePIDs.contains(pid)
                   ) else { return nil }
             return CGWindowRecord(
                 id: id,
@@ -537,10 +570,16 @@ final class WindowTracker {
         }
     }
 
-    static func shouldIncludeWindowRecord(layer: Int, alpha: Double, bounds: CGRect) -> Bool {
+    static func shouldIncludeWindowRecord(
+        layer: Int,
+        alpha: Double,
+        bounds: CGRect,
+        allowElevated: Bool = false
+    ) -> Bool {
         let dockWindowLevel = Int(CGWindowLevelForKey(.dockWindow))
+        let mainMenuWindowLevel = Int(CGWindowLevelForKey(.mainMenuWindow))
         return layer >= 0
-            && layer < dockWindowLevel
+            && (layer < dockWindowLevel || allowElevated && layer <= mainMenuWindowLevel)
             && alpha > 0.01
             && bounds.width > 40
             && bounds.height > 40

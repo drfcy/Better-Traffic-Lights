@@ -16,7 +16,7 @@ case "$TARGET_ARCH" in
         ;;
 esac
 
-TRIPLE="$TARGET_ARCH-apple-macosx15.0"
+TRIPLE="$TARGET_ARCH-apple-macosx14.0"
 SCRATCH="$ROOT/.build/$TARGET_ARCH"
 APP_BINARY="$SCRATCH/release/TrafficLightsPlus"
 RESOURCE_BUNDLE="$SCRATCH/release/TrafficLightsPlus_TrafficLightsPlus.bundle"

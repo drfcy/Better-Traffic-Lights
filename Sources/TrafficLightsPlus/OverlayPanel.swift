@@ -423,6 +423,17 @@ final class OverlayButtonView: NSView {
 }
 
 final class OverlayPanel: NSPanel {
+    static func level(forTargetLayer targetLayer: Int) -> NSWindow.Level {
+        let floatingLevel = NSWindow.Level.floating.rawValue
+        let statusLevel = NSWindow.Level.statusBar.rawValue
+        return NSWindow.Level(rawValue: min(max(floatingLevel, targetLayer + 1), statusLevel))
+    }
+
+    func setTargetLayer(_ targetLayer: Int) {
+        let desiredLevel = Self.level(forTargetLayer: targetLayer)
+        if level != desiredLevel { level = desiredLevel }
+    }
+
     let overlayViews: [WindowAction: OverlayButtonView]
 
     init() {

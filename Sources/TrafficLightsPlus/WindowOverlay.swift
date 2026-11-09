@@ -312,6 +312,10 @@ final class WindowOverlay {
         cgWindowID = windowID
     }
 
+    func setTargetLayer(_ layer: Int) {
+        panel.setTargetLayer(layer)
+    }
+
     var controlFrames: [WindowAction: CGRect] {
         preparedCGFrames
     }
