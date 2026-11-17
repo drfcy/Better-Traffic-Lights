@@ -52,6 +52,63 @@ import Testing
     #expect(enlarged.midY == native.midY)
 }
 
+@Test func neteaseReportedTitleBarOffsetDoesNotDisplaceHoverRegion() throws {
+    // Captured from a freshly reopened NetEase Music window: the window starts
+    // at y=222, but AX reports the buttons at y=201 instead of y=229.
+    let window = CGRect(x: 546, y: 222, width: 1057, height: 752)
+    let reported: [WindowAction: CGRect] = [
+        .close: CGRect(x: 556, y: 201, width: 12, height: 14),
+        .minimize: CGRect(x: 576, y: 201, width: 12, height: 14),
+        .zoom: CGRect(x: 596, y: 201, width: 12, height: 14)
+    ]
+    let corrected = reported.mapValues {
+        ControlLayout.nativeControlFrame(
+            $0, windowFrame: window,
+            bundleIdentifier: "com.netease.163music", isFullScreen: false
+        )
+    }
+    #expect(corrected[.minimize] == CGRect(x: 576, y: 229, width: 12, height: 14))
+    let pointer = CGPoint(x: 582, y: 236)
+    let oldRegion = try #require(ControlLayout.activationRegion(
+        controlFrames: reported, actions: Set(WindowAction.allCases)
+    ))
+    let fixedRegion = try #require(ControlLayout.activationRegion(
+        controlFrames: corrected, actions: Set(WindowAction.allCases)
+    ))
+    #expect(!oldRegion.contains(pointer))
+    #expect(fixedRegion.contains(pointer))
+
+    // Screen origins may be negative; correction is relative to the window.
+    let shifted = window.offsetBy(dx: -1800, dy: -500)
+    #expect(ControlLayout.nativeControlFrame(
+        reported[.minimize]!.offsetBy(dx: -1800, dy: -500),
+        windowFrame: shifted, bundleIdentifier: "com.netease.163music", isFullScreen: false
+    ) == corrected[.minimize]!.offsetBy(dx: -1800, dy: -500))
+}
+
+@Test func neteaseCorrectionPreservesValidAndUnrelatedControlFrames() {
+    let window = CGRect(x: 546, y: 222, width: 1057, height: 752)
+    let valid = CGRect(x: 576, y: 229, width: 12, height: 14)
+    let displaced = valid.offsetBy(dx: 0, dy: -28)
+    #expect(ControlLayout.nativeControlFrame(
+        valid, windowFrame: window,
+        bundleIdentifier: "com.netease.163music", isFullScreen: false
+    ) == valid)
+    #expect(ControlLayout.nativeControlFrame(
+        displaced, windowFrame: window,
+        bundleIdentifier: "com.netease.163music", isFullScreen: true
+    ) == displaced)
+    #expect(ControlLayout.nativeControlFrame(
+        displaced, windowFrame: window,
+        bundleIdentifier: "com.apple.Safari", isFullScreen: false
+    ) == displaced)
+    let unrelated = displaced.offsetBy(dx: -100, dy: -100)
+    #expect(ControlLayout.nativeControlFrame(
+        unrelated, windowFrame: window,
+        bundleIdentifier: "com.netease.163music", isFullScreen: false
+    ) == unrelated)
+}
+
 @Test func spacingAdjustmentKeepsCloseCenteredAndMovesFollowingButtons() {
     let nativeCenter = CGPoint(x: 100, y: 20)
 

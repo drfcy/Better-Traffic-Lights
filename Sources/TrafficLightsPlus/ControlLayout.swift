@@ -11,6 +11,23 @@ struct ControlLayout {
     // spacing leaves a 2 pt visible gap between the colored circles.
     static let automaticButtonFrameGap: CGFloat = 0
 
+    static func nativeControlFrame(
+        _ reportedFrame: CGRect,
+        windowFrame: CGRect,
+        bundleIdentifier: String?,
+        isFullScreen: Bool
+    ) -> CGRect {
+        // NetEase Music 3.0.x can report its traffic lights one 28 pt title bar
+        // above the window, including after a relaunch. Only correct that
+        // out-of-window geometry; later, valid AX updates must not move twice.
+        guard bundleIdentifier == "com.netease.163music", !isFullScreen,
+              reportedFrame.width > 0, reportedFrame.height > 0,
+              reportedFrame.maxY <= windowFrame.minY else { return reportedFrame }
+        let corrected = reportedFrame.offsetBy(dx: 0, dy: 28)
+        guard windowFrame.contains(corrected) else { return reportedFrame }
+        return corrected
+    }
+
     static func effectiveSize(preferred: Double) -> CGFloat {
         guard preferred.isFinite else { return CGFloat(defaultSize) }
         return CGFloat(min(max(preferred, sizeRange.lowerBound), sizeRange.upperBound))

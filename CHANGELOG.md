@@ -7,6 +7,12 @@
 - Retried new-window matching briefly when a window-opening animation makes Accessibility and WindowServer report different frames.
 - Replaced the settings slider's Liquid Glass material with a solid thumb.
 
+## 1.5.7 - 2026-11-17
+
+- Fixed enlarged traffic lights and their hover activation area appearing 28 points above NetEase Cloud Music's native controls when the app reports displaced Accessibility coordinates.
+- Kept valid control positions, fullscreen windows, and other applications unchanged; applied the same correction to native zoom-click positioning.
+- Added regression coverage for the captured NetEase coordinates and windows on displays with negative origins.
+
 ## 1.5.2 - 2026-09-21
 
 - Zoom buttons that showed the native zoom menu now perform a real native click after the menu closes, so clicks on an enlarged zoom control are no longer swallowed by the menu tracking session.

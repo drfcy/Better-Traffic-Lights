@@ -231,8 +231,14 @@ final class WindowOverlay {
         for action in WindowAction.allCases {
             guard let button: AXUIElement = copyAttribute(attribute(for: action), from: window) else { continue }
             buttons[action] = button
-            if let nativeFrame = axFrame(of: button),
+            if let reportedFrame = axFrame(of: button),
                recalibrateNativeCenters || nativeFrameOffsets[action] == nil {
+                let nativeFrame = ControlLayout.nativeControlFrame(
+                    reportedFrame,
+                    windowFrame: frame,
+                    bundleIdentifier: application?.bundleIdentifier,
+                    isFullScreen: isFullScreen
+                )
                 nativeFrameOffsets[action] = CGRect(
                     x: nativeFrame.minX - frame.minX,
                     y: nativeFrame.minY - frame.minY,
@@ -1149,10 +1155,15 @@ final class WindowOverlay {
         guard !isSuppressed, isEligibleForDisplay,
               let button = copyFreshButton(for: .zoom).button,
               copyAttribute(kAXEnabledAttribute as CFString, from: button) ?? true,
-              let buttonFrame = axFrame(of: button),
+              let reportedButtonFrame = axFrame(of: button),
               let targetWindowFrame = axFrame(of: window),
               let clickPoint = Self.nativeZoomClickPoint(
-                  in: buttonFrame,
+                  in: ControlLayout.nativeControlFrame(
+                      reportedButtonFrame,
+                      windowFrame: targetWindowFrame,
+                      bundleIdentifier: NSRunningApplication(processIdentifier: key.pid)?.bundleIdentifier,
+                      isFullScreen: isFullScreen
+                  ),
                   targetWindowFrame: targetWindowFrame,
                   displayFrames: Self.activeDisplayFrames()
               ) else {
