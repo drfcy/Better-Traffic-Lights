@@ -7,6 +7,12 @@
 - Retried new-window matching briefly when a window-opening animation makes Accessibility and WindowServer report different frames.
 - Replaced the settings slider's Liquid Glass material with a solid thumb.
 
+## 1.5.8 - 2026-11-17
+
+- Replaced the release-page-only update check with Sparkle 2.10.1, including version detection, download progress, signed-package verification, installation, and relaunch.
+- Added signed, architecture-specific update feeds and release packaging for Apple Silicon and Intel Macs.
+- Kept background checks and unattended installation disabled by default; updates are initiated from Settings.
+
 ## 1.5.7 - 2026-11-17
 
 - Fixed enlarged traffic lights and their hover activation area appearing 28 points above NetEase Cloud Music's native controls when the app reports displaced Accessibility coordinates.

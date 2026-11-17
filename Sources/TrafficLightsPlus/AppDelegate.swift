@@ -3,6 +3,7 @@ import SwiftUI
 import OSLog
 import Combine
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private enum MenuTag {
         static let settings = 99
@@ -11,6 +12,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     private let logger = Logger(subsystem: "app.trafficlightsplus.mac", category: "lifecycle")
     private let preferences = Preferences()
+    private let updater = AppUpdater()
     private var tracker: WindowTracker?
     private var statusItem: NSStatusItem?
     private var settingsWindow: NSWindow?
@@ -98,7 +100,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     @objc private func showSettings() {
         logger.notice("Showing settings window")
         if settingsWindow == nil {
-            let controller = NSHostingController(rootView: SettingsView(preferences: preferences))
+            let controller = NSHostingController(rootView: SettingsView(preferences: preferences, updater: updater))
             let window = NSWindow(
                 contentRect: NSRect(x: 0, y: 0, width: 470, height: 650),
                 styleMask: [.titled, .closable],

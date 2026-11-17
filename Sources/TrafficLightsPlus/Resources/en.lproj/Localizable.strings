@@ -68,7 +68,7 @@
 "overlay.single_button_magnification.help" = "Requires hover magnification";
 "settings.section.general" = "General";
 "settings.section.updates" = "Updates and About";
-"software_updates.check.description" = "View the latest version and release notes.";
+"software_updates.check.description" = "Check for a new version, then download and install it.";
 "software_updates.alert.title" = "Check for Updates";
 "software_updates.checking" = "Checking…";
 "software_updates.available" = "Version %@ is available. Open the GitHub release page to review and download it.";

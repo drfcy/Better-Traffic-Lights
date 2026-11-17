@@ -19,7 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Test
-        run: swift test -Xswiftc -warnings-as-errors
+        run: swift test --disable-keychain --disable-netrc -Xswiftc -warnings-as-errors
       - name: Build release app
         env:
           TARGET_ARCH: ${{ matrix.arch }}
@@ -39,4 +39,4 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Test
-        run: swift test --sanitize=${{ matrix.sanitizer }}
+        run: swift test --disable-keychain --disable-netrc --sanitize=${{ matrix.sanitizer }}

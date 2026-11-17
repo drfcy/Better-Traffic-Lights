@@ -33,5 +33,14 @@ BINARY="$APP/Contents/MacOS/TrafficLightsPlus"
 [[ "$(plutil -extract LSMinimumSystemVersion raw "$INFO")" == "14.0" ]]
 lipo "$BINARY" -verify_arch "$ARCH"
 codesign --verify --deep --strict "$APP"
+FRAMEWORK="$APP/Contents/Frameworks/Sparkle.framework"
+[[ -d "$FRAMEWORK" ]]
+codesign --verify --deep --strict "$FRAMEWORK"
+lipo "$FRAMEWORK/Versions/B/Sparkle" -verify_arch "$ARCH"
+[[ "$(plutil -extract SUFeedURL raw "$INFO")" == "https://github.com/drfcy/Better-Traffic-Lights/releases/latest/download/appcast-$ARCH.xml" ]]
+[[ "$(plutil -extract SUPublicEDKey raw "$INFO")" == "sl18P/bav8QRxGl/hhs5BbVXRW6UXFxFyba6I1RHHlI=" ]]
+[[ "$(plutil -extract SUVerifyUpdateBeforeExtraction raw "$INFO")" == "true" ]]
+[[ "$(plutil -extract SURequireSignedFeed raw "$INFO")" == "true" ]]
+[[ "$(otool -l "$BINARY")" == *"@executable_path/../Frameworks"* ]]
 
 echo "Validated $ZIP ($ARCH, $EXPECTED_VERSION build $EXPECTED_BUILD)"

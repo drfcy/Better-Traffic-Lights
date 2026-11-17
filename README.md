@@ -56,6 +56,8 @@ This animation shows the traffic lights at rest, enlarging when the pointer hove
 
 ### Install and permissions
 
+From version 1.5.8, Settings → Check for Updates can download, verify, install, and relaunch a newer version. Earlier versions require one manual upgrade. See [the update publishing guide](docs/UPDATES.md) for release maintenance.
+
 Get a package from [Releases](https://github.com/drfcy/Better-Traffic-Lights/releases) and move `Better Traffic Lights.app` to Applications. The current packages use ad-hoc signing rather than an Apple Developer ID and are not notarized, so macOS may block the first launch. To open a package you downloaded from this project:
 
 1. Try opening `Better Traffic Lights.app` from Applications.
@@ -135,6 +137,8 @@ Better Traffic Lights 是从 [Traffic Lights+](https://github.com/Liu223344/traf
 <p align="center"><img src="docs/images/traffic-lights-hover-demo.gif" alt="鼠标悬停时红绿灯平滑放大" width="500"></p>
 
 ### 安装与权限
+
+从 1.5.8 开始，可在设置中点击“检查更新”完成新版下载、验证、安装和重启。更早版本需要先手动升级一次。
 
 从 [Releases](https://github.com/drfcy/Better-Traffic-Lights/releases) 获取发布包，将 `Better Traffic Lights.app` 拖到“应用程序”文件夹。目前的安装包采用 ad-hoc 临时签名，没有 Apple Developer ID 签名，也未经过 Apple 公证，因此 macOS 可能在首次启动时拦截。安装从本项目下载的版本时：
 

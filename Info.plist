@@ -24,9 +24,9 @@
     <key>CFBundlePackageType</key>
     <string>APPL</string>
     <key>CFBundleShortVersionString</key>
-    <string>1.5.7</string>
+    <string>1.5.8</string>
     <key>CFBundleVersion</key>
-    <string>18</string>
+    <string>19</string>
     <key>LSMinimumSystemVersion</key>
     <string>14.0</string>
     <key>LSUIElement</key>
@@ -35,5 +35,21 @@
     <true/>
     <key>NSAccessibilityUsageDescription</key>
     <string>用于定位可见窗口的标准按钮，并执行用户配置的关闭、最小化和缩放操作。</string>
+    <key>SUPublicEDKey</key>
+    <string>sl18P/bav8QRxGl/hhs5BbVXRW6UXFxFyba6I1RHHlI=</string>
+    <key>SURequireSignedFeed</key>
+    <true/>
+    <key>SUSignedFeedFailureExpirationInterval</key>
+    <integer>0</integer>
+    <key>SUFeedURL</key>
+    <string>https://github.com/drfcy/Better-Traffic-Lights/releases/latest/download/appcast-arm64.xml</string>
+    <key>SUEnableAutomaticChecks</key>
+    <false/>
+    <key>SUAutomaticallyUpdate</key>
+    <false/>
+    <key>SUEnableSystemProfiling</key>
+    <false/>
+    <key>SUVerifyUpdateBeforeExtraction</key>
+    <true/>
 </dict>
 </plist>

@@ -5,10 +5,8 @@ import SwiftUI
 
 struct SettingsView: View {
     @ObservedObject var preferences: Preferences
+    @ObservedObject var updater: AppUpdater
     @State private var accessibilityGranted = AXIsProcessTrusted()
-    @State private var checkingForUpdates = false
-    @State private var updateAlertMessage: String?
-    @State private var updateReleaseURL: URL?
     @State private var aboutWindow: NSWindow?
 
     var body: some View {
@@ -29,19 +27,6 @@ struct SettingsView: View {
         .background(Color(nsColor: .windowBackgroundColor))
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             accessibilityGranted = AXIsProcessTrusted()
-        }
-        .alert(localized(.updateAlertTitle), isPresented: updateAlertIsPresented) {
-            if let updateReleaseURL {
-                Button(localized(.openRelease)) {
-                    NSWorkspace.shared.open(updateReleaseURL)
-                    clearUpdateAlert()
-                }
-            }
-            Button(localized(.ok), role: .cancel) {
-                clearUpdateAlert()
-            }
-        } message: {
-            Text(updateAlertMessage ?? "")
         }
     }
 
@@ -139,7 +124,7 @@ struct SettingsView: View {
                     .checkForUpdates,
                     detail: .checkForUpdatesDescription,
                     symbol: "arrow.clockwise.circle",
-                    action: checkForUpdates
+                    action: updater.checkForUpdates
                 )
                 rowDivider
                 settingsActionRow(
@@ -211,6 +196,7 @@ struct SettingsView: View {
                 .disabled(disabled)
                 .help(help ?? localized(title))
                 .accessibilityLabel(localized(title))
+        .disabled(title == .checkForUpdates && !updater.canCheckForUpdates)
         }
         .frame(minHeight: indented ? 47 : 51)
         .padding(.leading, indented ? 7 : 0)
@@ -255,6 +241,7 @@ struct SettingsView: View {
             }
             SettingsSlider(value: value, range: range, step: step)
                 .accessibilityLabel(localized(title))
+        .disabled(title == .checkForUpdates && !updater.canCheckForUpdates)
                 .accessibilityValue(valueText)
         }
         .padding(.vertical, 10)
@@ -282,88 +269,16 @@ struct SettingsView: View {
                         .lineLimit(1)
                 }
                 Spacer(minLength: 8)
-                if title == .checkForUpdates && checkingForUpdates {
-                    ProgressView()
-                        .controlSize(.small)
-                } else {
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(.tertiary)
-                }
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundStyle(.tertiary)
             }
             .frame(minHeight: 48)
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
         .accessibilityLabel(localized(title))
-    }
-
-    private func checkForUpdates() {
-        guard !checkingForUpdates,
-              let url = URL(string: "https://github.com/drfcy/Better-Traffic-Lights/releases/latest") else { return }
-
-        checkingForUpdates = true
-        updateReleaseURL = nil
-        Task {
-            defer { checkingForUpdates = false }
-            do {
-                var request = URLRequest(url: url)
-                request.setValue("Better-Traffic-Lights", forHTTPHeaderField: "User-Agent")
-                request.setValue("no-cache", forHTTPHeaderField: "Cache-Control")
-                request.httpMethod = "HEAD"
-                request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData
-                request.timeoutInterval = 15
-                let (_, response) = try await URLSession.shared.data(for: request)
-                guard let httpResponse = response as? HTTPURLResponse,
-                      httpResponse.statusCode == 200,
-                      let releaseURL = httpResponse.url,
-                      releaseURL.host == "github.com",
-                      releaseURL.path.hasPrefix("/drfcy/Better-Traffic-Lights/releases/tag/"),
-                      let tag = releaseURL.pathComponents.last else {
-                    throw UpdateCheckError.invalidResponse
-                }
-
-                let latestVersion = tag.trimmingCharacters(in: CharacterSet(charactersIn: "vV"))
-                let currentVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "0"
-
-                if Self.compareVersions(latestVersion, currentVersion) == .orderedDescending {
-                    updateReleaseURL = releaseURL
-                    updateAlertMessage = localized(.updateAvailable, arguments: [latestVersion])
-                } else {
-                    updateAlertMessage = localized(.updateUpToDate, arguments: [currentVersion])
-                }
-            } catch {
-                updateAlertMessage = localized(.updateCheckFailed)
-            }
-        }
-    }
-
-    private var updateAlertIsPresented: Binding<Bool> {
-        Binding(
-            get: { updateAlertMessage != nil },
-            set: { if !$0 { clearUpdateAlert() } }
-        )
-    }
-
-    private func clearUpdateAlert() {
-        updateAlertMessage = nil
-        updateReleaseURL = nil
-    }
-
-    private static func compareVersions(_ lhs: String, _ rhs: String) -> ComparisonResult {
-        let left = lhs.split(separator: ".").map { Int($0) ?? 0 }
-        let right = rhs.split(separator: ".").map { Int($0) ?? 0 }
-        for index in 0..<max(left.count, right.count) {
-            let leftPart = index < left.count ? left[index] : 0
-            let rightPart = index < right.count ? right[index] : 0
-            if leftPart < rightPart { return .orderedAscending }
-            if leftPart > rightPart { return .orderedDescending }
-        }
-        return .orderedSame
-    }
-
-    private enum UpdateCheckError: Error {
-        case invalidResponse
+        .disabled(title == .checkForUpdates && !updater.canCheckForUpdates)
     }
 
     private func showAbout() {
